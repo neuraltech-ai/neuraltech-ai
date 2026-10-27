@@ -784,6 +784,16 @@ function filterCardsByLang(lang, btn) {
     }
     renderChips();
 
+    // إخفاء أي زر دردشة قديم في أسفل اليسار
+    document.querySelectorAll("button, a, div").forEach(function(el) {
+        if (el.id === "nt-copilot-btn" || el.closest("#nt-copilot-panel")) return;
+        var style = window.getComputedStyle(el);
+        if (style.position === "fixed" && (el.innerText || "").indexOf("NeuralTech AI") !== -1 && (el.innerText || "").indexOf("✨") !== -1) {
+            el.style.setProperty("display", "none", "important");
+        }
+    });
+
+
     function formatMarkdown(text) {
         return text
             .replace(/```(\w*)\n([\s\S]*?)```/g, '<pre><code>$2</code></pre>')
