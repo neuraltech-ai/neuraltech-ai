@@ -598,6 +598,14 @@ function filterCardsByLang(lang, btn) {
         box-shadow: 0 0 12px rgba(99, 102, 241, 0.8);
     }
     /* إخفاء أي نافذة دردشة قديمة معطلة لمنع الازدواجية */
+    
+    /* إخفاء زر الدردشة القديم في أسفل اليسار لمنع الازدواجية */
+    button.fixed.bottom-6.left-6,
+    .fixed.bottom-6.left-6,
+    div.fixed.bottom-6.left-6 {
+        display: none !important;
+    }
+
     #chat-widget, #chat-window, #chat-toggle, .chat-widget-legacy, [onclick*="toggleChat"], [onclick*="sendMessage"] {
         display: none !important;
     }
