@@ -1,30 +1,16 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="100%" height="100%">
-        <defs>
-            <linearGradient id="bgR" x1="0" y1="0" x2="1" y2="1">
-                <stop offset="0%" stop-color="#04131d"/>
-                <stop offset="50%" stop-color="#083344"/>
-                <stop offset="100%" stop-color="#0f172a"/>
-            </linearGradient>
-        </defs>
+        <defs><linearGradient id="bgR" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#04131d"/><stop offset="50%" stop-color="#083344"/><stop offset="100%" stop-color="#0f172a"/></linearGradient></defs>
         <rect width="1200" height="630" fill="url(#bgR)"/>
-        <g stroke="#155e75" stroke-width="1" opacity="0.35">
-            <path d="M0 120 H1200 M0 240 H1200 M0 360 H1200 M0 480 H1200"/>
-            <path d="M240 0 V630 M480 0 V630 M720 0 V630 M960 0 V630"/>
-        </g>
-        <!-- العنوان العلوي -->
-        <rect x="280" y="40" width="640" height="54" rx="27" fill="#0e7490" opacity="0.65"/>
+        <g stroke="#155e75" stroke-width="1" opacity="0.35"><path d="M0 120 H1200 M0 240 H1200 M0 360 H1200 M0 480 H1200"/><path d="M240 0 V630 M480 0 V630 M720 0 V630 M960 0 V630"/></g>
+        <rect x="280" y="40" width="640" height="54" rx="27" fill="#0e7490" opacity="0.75"/>
         <text x="600" y="74" fill="#ecfeff" font-family="sans-serif" font-size="22" font-weight="bold" text-anchor="middle">HYBRID RAG &amp; VECTOR RETRIEVAL ENGINE</text>
-        <!-- المرحلة 1: المستندات والتضمين -->
         <rect x="70" y="170" width="270" height="290" rx="22" fill="#0f172a" stroke="#38bdf8" stroke-width="3"/>
         <text x="205" y="225" fill="#38bdf8" font-family="sans-serif" font-size="22" font-weight="bold" text-anchor="middle">1. Vector Embeddings</text>
         <text x="205" y="260" fill="#cbd5e1" font-family="sans-serif" font-size="18" text-anchor="middle">تقطيع وتضمين الوثائق</text>
         <text x="205" y="315" fill="#22d3ee" font-family="monospace" font-size="16" text-anchor="middle">[0.042, -0.891, 0.512]</text>
         <text x="205" y="350" fill="#22d3ee" font-family="monospace" font-size="16" text-anchor="middle">[0.731,  0.128, -0.34]</text>
         <text x="205" y="405" fill="#94a3b8" font-family="sans-serif" font-size="16" text-anchor="middle">Semantic Chunking</text>
-        <!-- سهم 1 -->
-        <path d="M345 315 L445 315" stroke="#22d3ee" stroke-width="5"/>
-        <polygon points="445,303 468,315 445,327" fill="#22d3ee"/>
-        <!-- المرحلة 2: البحث الهجين وإعادة الترتيب -->
+        <path d="M345 315 L445 315" stroke="#22d3ee" stroke-width="5"/><polygon points="445,303 468,315 445,327" fill="#22d3ee"/>
         <rect x="470" y="150" width="280" height="330" rx="24" fill="#164e63" stroke="#06b6d4" stroke-width="4"/>
         <text x="610" y="210" fill="#67e8f9" font-family="sans-serif" font-size="23" font-weight="bold" text-anchor="middle">2. Hybrid Search</text>
         <text x="610" y="245" fill="#ffffff" font-family="sans-serif" font-size="19" font-weight="bold" text-anchor="middle">Vector DB + BM25</text>
@@ -32,10 +18,7 @@
         <text x="610" y="308" fill="#a5f3fc" font-family="sans-serif" font-size="18" font-weight="bold" text-anchor="middle">Cross-Encoder</text>
         <text x="610" y="335" fill="#cbd5e1" font-family="sans-serif" font-size="15" text-anchor="middle">إعادة ترتيب النتائج الأدق</text>
         <text x="610" y="415" fill="#cffafe" font-family="sans-serif" font-size="18" text-anchor="middle">استرجاع فائق الدقة</text>
-        <!-- سهم 2 -->
-        <path d="M755 315 L855 315" stroke="#a855f7" stroke-width="5"/>
-        <polygon points="855,303 878,315 855,327" fill="#a855f7"/>
-        <!-- المرحلة 3: التوليد الموثق بلا هلوسة -->
+        <path d="M755 315 L855 315" stroke="#a855f7" stroke-width="5"/><polygon points="855,303 878,315 855,327" fill="#a855f7"/>
         <rect x="880" y="170" width="260" height="290" rx="22" fill="#1e1b4b" stroke="#a855f7" stroke-width="3"/>
         <text x="1010" y="225" fill="#e879f9" font-family="sans-serif" font-size="22" font-weight="bold" text-anchor="middle">3. Grounded LLM</text>
         <text x="1010" y="265" fill="#f8fafc" font-family="sans-serif" font-size="19" font-weight="bold" text-anchor="middle">توليد موثق بالمصادر</text>
