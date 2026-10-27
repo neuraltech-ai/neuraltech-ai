@@ -236,6 +236,31 @@
 
 <div class="post-container">
     <article class="post-card">
+<!-- NEURALTECH_SVG_DIAGRAM_START -->
+        <div class="my-8 p-5 rounded-2xl bg-slate-900/70 border border-indigo-500/25 shadow-2xl">
+            <div class="text-sm font-bold text-indigo-400 mb-2 flex items-center gap-2">
+                <span>⚡</span> <span>Zero-Trust AI Security & Guardrails</span>
+            </div>
+            <svg viewBox="0 0 800 220" class="w-full h-auto my-6 rounded-2xl border border-rose-500/30 bg-slate-900/90 p-4 shadow-xl">
+            <rect x="20" y="70" width="130" height="80" rx="12" fill="#0f172a" stroke="#f43f5e" stroke-width="2"/>
+            <text x="85" y="105" fill="#fb7185" font-size="13" font-weight="bold" text-anchor="middle">User Prompt</text>
+            <text x="85" y="125" fill="#94a3b8" font-size="10" text-anchor="middle">مدخلات المستخدم</text>
+            <path d="M150 110 L210 110" stroke="#f43f5e" stroke-width="2.5"/>
+            <rect x="210" y="55" width="165" height="110" rx="14" fill="#4c0519" stroke="#f43f5e" stroke-width="2"/>
+            <text x="292" y="92" fill="#fda4af" font-size="13" font-weight="bold" text-anchor="middle">Input Guardrails</text>
+            <text x="292" y="114" fill="#fecdd3" font-size="11" text-anchor="middle">كشف حقن الأوامر (Injection)</text>
+            <text x="292" y="134" fill="#fb7185" font-size="10" text-anchor="middle">PII Redaction & Sandbox</text>
+            <path d="M375 110 L435 110" stroke="#10b981" stroke-width="2.5"/>
+            <rect x="435" y="65" width="140" height="90" rx="12" fill="#0f172a" stroke="#6366f1" stroke-width="2"/>
+            <text x="505" y="102" fill="#a5b4fc" font-size="13" font-weight="bold" text-anchor="middle">Protected LLM</text>
+            <text x="505" y="124" fill="#94a3b8" font-size="11" text-anchor="middle">النموذج المعزول أمنياً</text>
+            <path d="M575 110 L635 110" stroke="#10b981" stroke-width="2.5"/>
+            <rect x="635" y="65" width="145" height="90" rx="12" fill="#064e3b" stroke="#10b981" stroke-width="2"/>
+            <text x="707" y="100" fill="#34d399" font-size="13" font-weight="bold" text-anchor="middle">Output Verifier</text>
+            <text x="707" y="122" fill="#a7f3d0" font-size="11" text-anchor="middle">فلترة المخرجات ومنع التسريب</text>
+        </svg>
+        </div>
+        <!-- NEURALTECH_SVG_DIAGRAM_END -->
         <img src="https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&w=1200&q=85" alt="Zero-Trust Cloud API Security & Cryptographic Request Signing" class="post-hero">
         <div class="card-meta-top">
             <span class="tag-pill">AI-Tech (EN)</span>
@@ -538,5 +563,417 @@ function filterCardsByLang(lang, btn) {
 }
 </script>
 
+
+<!-- NEURALTECH_ENTERPRISE_START -->
+<link rel="manifest" href="./manifest.json">
+<style>
+    #nt-progress-bar {
+        position: fixed; top: 0; left: 0; height: 4px; width: 0%;
+        background: linear-gradient(90deg, #6366f1, #06b6d4, #10b981);
+        z-index: 99999; transition: width 0.15s ease-out;
+        box-shadow: 0 0 12px rgba(99, 102, 241, 0.8);
+    }
+    /* إخفاء أي نافذة دردشة قديمة معطلة لمنع الازدواجية */
+    #chat-widget, #chat-window, #chat-toggle, .chat-widget-legacy, [onclick*="toggleChat"], [onclick*="sendMessage"] {
+        display: none !important;
+    }
+    #nt-copilot-btn {
+        position: fixed; bottom: 24px; right: 24px; z-index: 99990;
+        display: flex; align-items: center; gap: 10px;
+        background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 50%, #0891b2 100%);
+        color: #fff; border: 1px solid rgba(255,255,255,0.25);
+        padding: 14px 22px; border-radius: 9999px; font-weight: 700;
+        box-shadow: 0 12px 32px -4px rgba(79, 70, 229, 0.6);
+        cursor: pointer; transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        font-family: system-ui, -apple-system, sans-serif;
+    }
+    #nt-copilot-btn:hover { transform: translateY(-3px) scale(1.03); box-shadow: 0 18px 38px -4px rgba(79, 70, 229, 0.8); }
+    #nt-copilot-panel {
+        position: fixed; bottom: 92px; right: 24px; z-index: 99995;
+        width: min(420px, calc(100vw - 32px)); height: min(600px, calc(100vh - 130px));
+        background: rgba(15, 23, 42, 0.97); backdrop-filter: blur(20px);
+        border: 1px solid rgba(99, 102, 241, 0.35); border-radius: 24px;
+        box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.85);
+        display: none; flex-direction: column; overflow: hidden;
+        color: #f8fafc; font-family: system-ui, -apple-system, sans-serif;
+    }
+    #nt-copilot-panel.open { display: flex; animation: ntSlideUp 0.25s ease-out; }
+    @keyframes ntSlideUp { from { opacity: 0; transform: translateY(18px) scale(0.97); } to { opacity: 1; transform: translateY(0) scale(1); } }
+    #nt-messages { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 12px; scroll-behavior: smooth; }
+    .nt-msg { max-width: 88%; padding: 12px 15px; border-radius: 16px; font-size: 14px; line-height: 1.65; word-wrap: break-word; }
+    .nt-msg-ai { background: rgba(30, 41, 59, 0.95); border: 1px solid rgba(148, 163, 184, 0.2); align-self: flex-start; border-bottom-left-radius: 4px; color: #e2e8f0; }
+    .nt-msg-user { background: linear-gradient(135deg, #4f46e5, #6366f1); color: #fff; align-self: flex-end; border-bottom-right-radius: 4px; }
+    .nt-msg pre { background: #090d16; padding: 10px; border-radius: 10px; overflow-x: auto; font-size: 12px; margin-top: 8px; border: 1px solid #334155; direction: ltr; text-align: left; color: #38bdf8; }
+    .nt-chip {
+        background: rgba(79, 70, 229, 0.16); border: 1px solid rgba(99, 102, 241, 0.4);
+        color: #c7d2fe; padding: 6px 12px; border-radius: 999px; font-size: 12px;
+        cursor: pointer; white-space: nowrap; transition: all 0.2s;
+    }
+    .nt-chip:hover { background: #4f46e5; color: #fff; }
+    .nt-status-dot { width: 9px; height: 9px; background: #10b981; border-radius: 50%; display: inline-block; box-shadow: 0 0 8px #10b981; animation: ntPulse 2s infinite; }
+    @keyframes ntPulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+</style>
+
+<div id="nt-progress-bar"></div>
+
+<button id="nt-copilot-btn" onclick="window.ntToggleCopilot()" aria-label="AI Copilot">
+    <span class="nt-status-dot"></span>
+    <span id="nt-btn-label">المساعد الذكي AI</span>
+    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"/></svg>
+</button>
+
+<div id="nt-copilot-panel">
+    <div style="padding: 15px 18px; background: linear-gradient(90deg, #1e1b4b, #0f172a); border-bottom: 1px solid rgba(99,102,241,0.25); display: flex; justify-content: space-between; align-items: center;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <span class="nt-status-dot"></span>
+            <div>
+                <div style="font-weight: 800; font-size: 15px; color: #fff;">NeuralTech AI Copilot</div>
+                <div id="nt-subtitle" style="font-size: 11px; color: #94a3b8;">متصل دائماً • محرك هجين (Cloud + Local RAG)</div>
+            </div>
+        </div>
+        <div style="display: flex; gap: 8px; align-items: center;">
+            <button onclick="window.ntSpeakLast()" title="قراءة صوتية" style="background: rgba(255,255,255,0.08); border: none; color: #cbd5e1; padding: 6px 9px; border-radius: 8px; cursor: pointer; font-size: 13px;">🔊</button>
+            <button onclick="window.ntConfigKey()" title="إعداد مفتاح API اختياري" style="background: rgba(255,255,255,0.08); border: none; color: #cbd5e1; padding: 6px 9px; border-radius: 8px; cursor: pointer; font-size: 13px;">⚙️</button>
+            <button onclick="window.ntClearChat()" title="مسح المحادثة" style="background: rgba(255,255,255,0.08); border: none; color: #cbd5e1; padding: 6px 9px; border-radius: 8px; cursor: pointer; font-size: 13px;">🗑️</button>
+            <button onclick="window.ntToggleCopilot()" style="background: rgba(239,68,68,0.2); border: none; color: #fca5a5; padding: 6px 10px; border-radius: 8px; cursor: pointer; font-weight: bold;">✕</button>
+        </div>
+    </div>
+
+    <div id="nt-chips-bar" style="padding: 10px 14px; display: flex; gap: 8px; overflow-x: auto; background: rgba(15,23,42,0.8); border-bottom: 1px solid rgba(255,255,255,0.06);"></div>
+
+    <div id="nt-messages"></div>
+
+    <form onsubmit="event.preventDefault(); window.ntSend();" style="padding: 12px; background: #090d16; border-top: 1px solid rgba(99,102,241,0.25); display: flex; gap: 8px;">
+        <input id="nt-input" type="text" placeholder="اسأل أي سؤال تقني أو اطلب تلخيصاً أو كوداً..." autocomplete="off"
+               style="flex: 1; background: #1e293b; color: #fff; border: 1px solid #334155; border-radius: 12px; padding: 11px 14px; font-size: 14px; outline: none;">
+        <button type="submit" id="nt-send-btn"
+                style="background: linear-gradient(135deg, #4f46e5, #0891b2); color: #fff; border: none; padding: 0 18px; border-radius: 12px; font-weight: 700; cursor: pointer;">إرسال</button>
+    </form>
+</div>
+
+<script>
+(function() {
+    // تسجيل Service Worker لضمان عمل الموقع بدون توقف حتى أوفلاين
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function() {
+            navigator.serviceWorker.register('./sw.js').catch(function() {});
+        });
+    }
+
+    // شريط تقدم القراءة الاحترافي
+    window.addEventListener('scroll', function() {
+        var doc = document.documentElement;
+        var total = doc.scrollHeight - doc.clientHeight;
+        var pct = total > 0 ? (doc.scrollTop / total) * 100 : 0;
+        var bar = document.getElementById('nt-progress-bar');
+        if (bar) bar.style.width = pct + '%';
+    });
+
+    // حماية جميع الصور في الموقع من التوقف أو الانكسار
+    var topicFallbacks = {
+        agents: "https://images.unsplash.com/photo-1620712943543-bcc4688e7485?auto=format&fit=crop&w=1200&q=85",
+        rag: "https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=1200&q=85",
+        security: "https://images.unsplash.com/photo-1563986768609-322da13575f3?auto=format&fit=crop&w=1200&q=85",
+        triage: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=1200&q=85"
+    };
+    var svgFallbackData = "data:image/svg+xml;utf8," + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="800" height="450" viewBox="0 0 800 450"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#0f172a"/><stop offset="50%" stop-color="#1e1b4b"/><stop offset="100%" stop-color="#083344"/></linearGradient></defs><rect width="800" height="450" fill="url(#g)"/><circle cx="400" cy="225" r="110" fill="none" stroke="#6366f1" stroke-width="3" opacity="0.5"/><text x="400" y="235" text-anchor="middle" fill="#38bdf8" font-family="sans-serif" font-size="28" font-weight="bold">NeuralTech AI Architecture</text></svg>');
+
+    document.querySelectorAll('img').forEach(function(img) {
+        img.addEventListener('error', function() {
+            if (this.dataset.fallbackApplied) return;
+            this.dataset.fallbackApplied = '1';
+            this.src = svgFallbackData;
+        });
+    });
+
+    // تحديد لغة وموضوع الصفحة الحالية
+    var path = window.location.pathname.toLowerCase();
+    var isEn = path.indexOf('_en.html') !== -1 || document.documentElement.lang === 'en';
+    var currentTopic = 'general';
+    if (path.indexOf('agents') !== -1) currentTopic = 'agents';
+    else if (path.indexOf('rag') !== -1) currentTopic = 'rag';
+    else if (path.indexOf('security') !== -1) currentTopic = 'security';
+    else if (path.indexOf('triage') !== -1) currentTopic = 'triage';
+
+    // ضبط واجهة الدردشة حسب لغة الصفحة
+    var panel = document.getElementById('nt-copilot-panel');
+    panel.dir = isEn ? 'ltr' : 'rtl';
+    if (isEn) {
+        document.getElementById('nt-btn-label').textContent = 'AI Copilot';
+        document.getElementById('nt-subtitle').textContent = 'Always Online • Hybrid Cloud + Local RAG';
+        document.getElementById('nt-input').placeholder = 'Ask any question, request code or summary...';
+        document.getElementById('nt-send-btn').textContent = 'Send';
+    }
+
+    // استخراج محتوى الصفحة الفعلي لمحرك RAG المحلي
+    function getPageContext() {
+        var title = document.title || '';
+        var paragraphs = [];
+        document.querySelectorAll('article p, article li, main p, main li, h1, h2, h3').forEach(function(el) {
+            var t = (el.innerText || '').trim();
+            if (t.length > 25 && paragraphs.indexOf(t) === -1) paragraphs.push(t);
+        });
+        return { title: title, chunks: paragraphs.slice(0, 60) };
+    }
+
+    // قاعدة المعرفة التقنية العميقة المدمجة (تعمل 100% بدون إنترنت)
+    var KB = {
+        agents: {
+            ar: "**وكلاء الذكاء الاصطناعي المستقلون (Autonomous AI Agents):**\nهم أنظمة تتجاوز مجرد الإجابة النصية إلى **التخطيط (Planning)، استخدام الأدوات (Tool Use)، والذاكرة (Memory)** لتنفيذ مهام معقدة.\n\n• **دورة العمل (ReAct Pattern):** التفكير (Reason) ← اختيار الأداة (Act) ← ملاحظة النتيجة (Observe) ← تصحيح المسار.\n• **أشهر الأطر البرمجية:** `LangGraph` و `CrewAI` و `AutoGen`.\n\n```python\n# مثال عملي لبناء وكيل ذكي متعدد المهام\nclass AutonomousAgent:\n    def __init__(self, tools):\n        self.tools = tools\n        self.memory = []\n    def execute(self, goal):\n        plan = self.plan_steps(goal)\n        for step in plan:\n            result = self.tools[step.tool](step.input)\n            self.memory.append(result)\n        return self.synthesize(self.memory)\n```",
+            en: "**Autonomous AI Agents:**\nSystems that go beyond static text generation by combining **Planning, Tool Execution, Memory, and Multi-Agent Collaboration**.\n\n• **Core Loop (ReAct):** Thought → Action (Tool Call) → Observation → Self-Correction.\n• **Production Frameworks:** `LangGraph`, `CrewAI`, and Microsoft `AutoGen`.\n\n```python\n# Minimal ReAct Agent Pattern in Python\ndef agent_loop(query, tools):\n    state = {'goal': query, 'history': []}\n    for step in range(5):\n        action = decide_next_action(state)\n        if action.type == 'FINAL': return action.answer\n        obs = tools[action.tool](action.arg)\n        state['history'].append((action, obs))\n```"
+        },
+        rag: {
+            ar: "**التوليد المعزز بالاسترجاع (Enterprise RAG):**\nتقنية تربط النماذج اللغوية ببياناتك الموثوقة في الوقت الفعلي لمنع الهلوسة (Hallucination) وتوفير إجابات مسندة بالمصادر.\n\n• **المراحل الـ 4 الأساسية:**\n1. **التقطيع الدلالي (Semantic Chunking):** تقسيم المستندات مع الحفاظ على السياق.\n2. **البحث الهجين (Hybrid Search):** دمج البحث المتجهي (`Vector Embeddings`) مع البحث بالكلمات المفتاحية (`BM25`).\n3. **إعادة الترتيب (`Cross-Encoder Reranking`):** اختيار أدق الفقرات قبل إرسالها للنموذج.\n4. **التوليد الموثق:** إلزام النموذج بالإجابة من السياق المسترجع فقط.\n\n```python\n# استرجاع هجين وإعادة ترتيب (Hybrid RAG)\nresults = vector_db.hybrid_search(query, alpha=0.7, top_k=10)\nreranked = cross_encoder.rerank(query, results, top_n=3)\nprompt = f\"أجب بدقة اعتماداً على السياق:\\n{reranked}\\nالسؤال: {query}\"\n```",
+            en: "**Retrieval-Augmented Generation (Advanced RAG):**\nGrounds LLMs on verified enterprise data in real time to eliminate hallucinations.\n\n• **Production Pipeline:**\n1. **Semantic Chunking & Embeddings** (e.g., BGE-M3 / OpenAI text-embedding-3).\n2. **Hybrid Retrieval:** Combines Dense Vector Search + Sparse BM25 keyword matching.\n3. **Cross-Encoder Reranking:** Filters top-K chunks down to the highest-relevance context.\n4. **Cited Generation:** Forces strict adherence to retrieved facts."
+        },
+        security: {
+            ar: "**أمن الذكاء الاصطناعي وحماية النماذج (AI Security & Guardrails):**\nحماية الأنظمة الذكية من الهجمات العدائية وتسريب البيانات طبقاً لمعيار **OWASP Top 10 for LLMs**.\n\n• **أخطر التهديدات:**\n1. **حقن الأوامر المباشر وغير المباشر (Prompt Injection):** تلاعب المهاجم بتعليمات النظام.\n2. **تسريب البيانات الحساسة (PII Leakage):** استخراج بيانات التدريب أو المفاتيح السرية.\n• **طبقات الحماية (Zero-Trust AI Firewall):**\nفصل تعليمات النظام عن بيانات المستخدم، تشفير وحجب البيانات الشخصية قبل الإرسال، وفحص المخرجات عبر نماذج حراسة مثل `Llama Guard` و `NeMo Guardrails`.",
+            en: "**AI Security & Adversarial Defense (OWASP Top 10 for LLMs):**\nSecuring LLM applications against Prompt Injection, Jailbreaking, and Data Exfiltration.\n\n• **Defense-in-Depth Architecture:**\n1. **Input Guardrails:** Detect direct/indirect prompt injection and redact PII.\n2. **Privilege Separation:** Restrict agent tool execution inside isolated sandboxes.\n3. **Output Verification:** Audit responses against policy violations before display."
+        },
+        triage: {
+            ar: "**أنظمة الفرز الذكي وتوجيه الأولويات (AI Smart Triage Systems):**\nتوظيف النماذج الذكية لتصنيف الحالات الحرجة (الطبية، التقنية، والأمنية) في أجزاء من الثانية وتوجيهها بدقة.\n\n• **آلية العمل:**\n1. **التصنيف الفوري للخطورة (Severity Scoring):** تحليل البيانات الواردة وتحديد درجة الطوارئ (`P1 Critical` إلى `P4 Low`).\n2. **عتبة الثقة (Confidence Threshold):** الحالات الواضحة تُعالج آلياً، بينما الحالات الحرجة أو الغامضة تُحوّل فوراً للخبير البشري (`Human-in-the-Loop`).",
+            en: "**AI-Driven Smart Triage & Decision Systems:**\nReal-time classification, severity scoring, and automated routing for mission-critical workflows.\n\n• **Core Architecture:**\n1. **Multi-Modal Ingestion:** Parses logs, tickets, or clinical telemetry instantaneously.\n2. **Calibrated Confidence Routing:** Auto-resolves high-confidence routine cases while escalating critical P1 anomalies to human experts (Human-in-the-Loop)."
+        }
+    };
+
+    // إعداد أزرار الأسئلة المقترحة التفاعلية حسب الصفحة
+    function renderChips() {
+        var bar = document.getElementById('nt-chips-bar');
+        var chipsAr = [
+            "لخّص هذا المقال في نقاط",
+            "اشرح الفكرة بمثال برمجي Python",
+            "ما الفرق بين RAG و الوكلاء Agents؟",
+            "كيف نحمي النماذج من Prompt Injection؟",
+            "كيف يعمل نظام الفرز الذكي Triage؟"
+        ];
+        var chipsEn = [
+            "Summarize this article",
+            "Show me a Python code example",
+            "Compare RAG vs AI Agents",
+            "How to prevent Prompt Injection?",
+            "Explain Smart Triage architecture"
+        ];
+        var list = isEn ? chipsEn : chipsAr;
+        bar.innerHTML = '';
+        list.forEach(function(txt) {
+            var btn = document.createElement('button');
+            btn.className = 'nt-chip';
+            btn.textContent = txt;
+            btn.onclick = function() {
+                document.getElementById('nt-input').value = txt;
+                window.ntSend();
+            };
+            bar.appendChild(btn);
+        });
+    }
+    renderChips();
+
+    function formatMarkdown(text) {
+        return text
+            .replace(/```(\w*)\n([\s\S]*?)```/g, '<pre><code>$2</code></pre>')
+            .replace(/\*\*([^*]+)\*\*/g, '<strong style="color:#38bdf8">$1</strong>')
+            .replace(/`([^`]+)`/g, '<code style="background:#0f172a;padding:2px 6px;border-radius:4px;color:#f472b6">$1</code>')
+            .replace(/\n/g, '<br>');
+    }
+
+    function appendMessage(role, htmlContent) {
+        var box = document.getElementById('nt-messages');
+        var div = document.createElement('div');
+        div.className = 'nt-msg ' + (role === 'user' ? 'nt-msg-user' : 'nt-msg-ai');
+        div.innerHTML = formatMarkdown(htmlContent);
+        box.appendChild(div);
+        box.scrollTop = box.scrollHeight;
+        return div;
+    }
+
+    // رسالة الترحيب الذكية حسب المقال الحالي
+    function initWelcome() {
+        var box = document.getElementById('nt-messages');
+        if (box.children.length > 0) return;
+        var ctx = getPageContext();
+        var welcomeAr = "مرحباً بك في **NeuralTech AI**! 🚀\nأنا مساعدك الذكي المتصل دائماً. يمكنك سؤالي عن أي تفصيل في هذا المقال (**" + ctx.title + "**)، أو طلب تلخيص، أو شرح برمجي بلغة Python، أو أي سؤال تقني وسأجيبك فوراً.";
+        var welcomeEn = "Welcome to **NeuralTech AI**! 🚀\nI am your always-online AI Copilot. Ask me anything about **" + ctx.title + "**, request a summary, Python code examples, or deep technical comparisons.";
+        appendMessage('ai', isEn ? welcomeEn : welcomeAr);
+    }
+    initWelcome();
+
+    // المحرك المحلي الذكي (Local Semantic RAG) الذي يضمن عدم توقف الدردشة أبداً
+    function generateSmartLocalAnswer(query) {
+        var q = query.toLowerCase();
+        var lang = /[\u0600-\u06FF]/.test(query) ? 'ar' : (isEn ? 'en' : 'ar');
+        var ctx = getPageContext();
+
+        // 1. إذا طلب تلخيص المقال الحالي
+        if (/لخص|تلخيص|ملخص|خلاصة|فكرة|موضوع|summar|overview|tldr|about/i.test(q)) {
+            if (ctx.chunks.length > 2) {
+                var topChunks = ctx.chunks.slice(0, 4).map(function(c) { return "• " + c; }).join("\n\n");
+                var topicExtra = KB[currentTopic] ? ("\n\n---\n" + KB[currentTopic][lang]) : "";
+                return (lang === 'ar'
+                    ? "**ملخص ذكي لمحتوى الصفحة الحالية (" + ctx.title + "):**\n\n" + topChunks + topicExtra
+                    : "**Executive Summary (" + ctx.title + "):**\n\n" + topChunks + topicExtra);
+            }
+        }
+
+        // 2. إذا سأل عن مقارنة بين RAG و Agents
+        if ((/rag|استرجاع/i.test(q)) && (/agent|وكيل|وكلاء/i.test(q))) {
+            return lang === 'ar'
+                ? "**الفرق الجوهري بين RAG ووكلاء الذكاء الاصطناعي (AI Agents):**\n\n1. **نظام RAG (التوليد المعزز بالاسترجاع):** يركز على **المعرفة الدقيقة**؛ يبحث في قاعدة البيانات عن الوثائق المرتبطة بسؤالك ويزود بها النموذج لمنع الهلوسة.\n2. **الوكيل الذكي (AI Agent):** يركز على **التنفيذ واتخاذ القرار**؛ يمتلك قدرة التخطيط واستدعاء الأدوات (مثل تشغيل كود، البحث، أو تحديث نظام) في حلقة متكررة حتى ينجز المهمة.\n3. **الدمج الاحترافي (Agentic RAG):** هو قمة الأنظمة الحديثة، حيث يستخدم الوكيل الذكي محرك RAG كإحدى أدواته للبحث والتحقق قبل اتخاذ القرار!"
+                : "**RAG vs. Autonomous AI Agents:**\n\n1. **RAG (Retrieval-Augmented Generation):** Focuses on **Knowledge Grounding**—retrieving relevant documents from a Vector DB so the LLM answers accurately without hallucination.\n2. **AI Agents:** Focus on **Action & Multi-Step Reasoning**—planning steps, calling external APIs/tools, and inspecting results.\n3. **Agentic RAG:** Combines both—an intelligent agent dynamically formulates queries, critiques retrieved chunks, and synthesizes verified answers.";
+        }
+
+        // 3. فحص المواضيع التقنية الأربعة + الأكواد البرمجية
+        if (/agent|وكيل|وكلاء|react|langgraph|crewai|autogen/i.test(q)) return KB.agents[lang];
+        if (/rag|vector|استرجاع|متجهات|تضمين|embedding|هلوسة|hallucinat/i.test(q)) return KB.rag[lang];
+        if (/secur|أمن|حماي|اختراق|injection|حقن|guardrail|owasp/i.test(q)) return KB.security[lang];
+        if (/triage|فرز|أولوي|طوارئ|تصنيف|قرار/i.test(q)) return KB.triage[lang];
+        if (/كود|برمج|بايثون|python|code|script|example|مثال/i.test(q)) {
+            var targetTopic = currentTopic !== 'general' ? currentTopic : 'agents';
+            return KB[targetTopic][lang];
+        }
+
+        // 4. البحث الدلالي في فقرات المقال الحالي (Live DOM RAG Search)
+        var words = q.replace(/[^\w\u0600-\u06FF\s]/g, '').split(/\s+/).filter(function(w) { return w.length > 2; });
+        var scored = [];
+        ctx.chunks.forEach(function(chunk) {
+            var score = 0;
+            var cl = chunk.toLowerCase();
+            words.forEach(function(w) { if (cl.indexOf(w) !== -1) score += 2; });
+            if (score > 0) scored.push({ text: chunk, score: score });
+        });
+        scored.sort(function(a, b) { return b.score - a.score; });
+
+        if (scored.length > 0) {
+            var matches = scored.slice(0, 3).map(function(m) { return "• " + m.text; }).join("\n\n");
+            return (lang === 'ar'
+                ? "**إليك الإجابة الدقيقة المستخلصة من المقال:**\n\n" + matches + "\n\nهل ترغب في شرح أعمق أو مثال برمجي تطبيقي لهذه النقطة؟"
+                : "**Based on the article's technical analysis:**\n\n" + matches + "\n\nWould you like a code example or deeper architectural breakdown?");
+        }
+
+        // 5. إجابة شاملة ذكية لأي سؤال عام
+        if (currentTopic !== 'general' && KB[currentTopic]) {
+            return KB[currentTopic][lang];
+        }
+        return lang === 'ar'
+            ? "**تحليل NeuralTech الذكي:**\nمنصتنا تغطي 4 ركائز أساسية في هندسة الذكاء الاصطناعي الحديثة:\n\n1. **وكلاء الذكاء الاصطناعي (`AI Agents`):** أتمتة المهام المعقدة والتخطيط المستقل.\n2. **أنظمة الاسترجاع (`Enterprise RAG`):** ربط النماذج ببياناتك الموثوقة بلا هلوسة.\n3. **أمن النماذج (`AI Security`):** الحماية من هجمات `Prompt Injection`.\n4. **الفرز الذكي (`Smart Triage`):** توجيه الأولويات واتخاذ القرار الفوري.\n\nاضغط على أحد الأزرار في الأعلى أو اكتب النقطة التي تود تفصيلها بالـ Python!"
+            : "**NeuralTech AI Synthesis:**\nOur platform specializes in 4 enterprise AI pillars:\n\n1. **Autonomous AI Agents** (ReAct & Multi-Agent workflows)\n2. **Hybrid RAG Architectures** (Vector DB + Cross-Encoder Reranking)\n3. **Zero-Trust AI Security** (Prompt Injection & Guardrails)\n4. **Smart Triage Systems** (Real-time severity routing)\n\nSelect a topic above or ask for a specific architecture or Python implementation!";
+    }
+
+    // إرسال السؤال (يتصل بالسحابة أولاً مع انتقال فوري للمحرك المحلي بدون أي توقف)
+    window.ntSend = async function() {
+        var input = document.getElementById('nt-input');
+        var text = (input.value || '').trim();
+        if (!text) return;
+        input.value = '';
+        appendMessage('user', text);
+
+        var loadingDiv = appendMessage('ai', isEn ? '⏳ *Analyzing & generating response...*' : '⏳ *جاري التحليل وتوليد الإجابة...*');
+        var ctx = getPageContext();
+        var sysPrompt = "You are NeuralTech AI Copilot, an elite enterprise AI engineering assistant. Answer concisely, interactively, and accurately in the same language as the user's question (Arabic or English). Context of current article (" + ctx.title + "): " + ctx.chunks.slice(0, 6).join(" | ");
+
+        var answered = false;
+
+        // المحاولة 1: إذا وضع المستخدم مفتاح Gemini خاص به في المتصفح
+        var userKey = localStorage.getItem('nt_gemini_api_key');
+        if (userKey && !answered) {
+            try {
+                var ctrl1 = new AbortController();
+                var t1 = setTimeout(function() { ctrl1.abort(); }, 6500);
+                var gRes = await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=" + encodeURIComponent(userKey), {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ contents: [{ parts: [{ text: sysPrompt + "\n\nUser Question: " + text }] }] }),
+                    signal: ctrl1.signal
+                });
+                clearTimeout(t1);
+                if (gRes.ok) {
+                    var gData = await gRes.json();
+                    var gReply = gData.candidates && gData.candidates[0] && gData.candidates[0].content.parts[0].text;
+                    if (gReply) {
+                        loadingDiv.innerHTML = formatMarkdown(gReply);
+                        window.ntLastAiText = gReply;
+                        answered = true;
+                    }
+                }
+            } catch (e) {}
+        }
+
+        // المحاولة 2: الاتصال السحابي المفتوح (Pollinations OpenAI-Compatible Endpoint - بدون مفتاح)
+        if (!answered) {
+            try {
+                var ctrl2 = new AbortController();
+                var t2 = setTimeout(function() { ctrl2.abort(); }, 6000);
+                var pRes = await fetch("https://text.pollinations.ai/openai", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        model: "openai",
+                        messages: [
+                            { role: "system", content: sysPrompt },
+                            { role: "user", content: text }
+                        ]
+                    }),
+                    signal: ctrl2.signal
+                });
+                clearTimeout(t2);
+                if (pRes.ok) {
+                    var pData = await pRes.json();
+                    var pReply = pData.choices && pData.choices[0] && pData.choices[0].message && pData.choices[0].message.content;
+                    if (pReply && pReply.length > 15) {
+                        loadingDiv.innerHTML = formatMarkdown(pReply);
+                        window.ntLastAiText = pReply;
+                        answered = true;
+                    }
+                }
+            } catch (e) {}
+        }
+
+        // المحاولة 3 (ضمان عدم التوقف 100%): محرك الاسترجاع الدلالي المحلي (Local RAG Engine)
+        if (!answered) {
+            var localReply = generateSmartLocalAnswer(text);
+            loadingDiv.innerHTML = formatMarkdown(localReply);
+            window.ntLastAiText = localReply;
+        }
+
+        var box = document.getElementById('nt-messages');
+        box.scrollTop = box.scrollHeight;
+    };
+
+    window.ntToggleCopilot = function() {
+        var p = document.getElementById('nt-copilot-panel');
+        p.classList.toggle('open');
+        if (p.classList.contains('open')) {
+            setTimeout(function() { document.getElementById('nt-input').focus(); }, 150);
+        }
+    };
+
+    window.ntClearChat = function() {
+        document.getElementById('nt-messages').innerHTML = '';
+        initWelcome();
+    };
+
+    window.ntConfigKey = function() {
+        var current = localStorage.getItem('nt_gemini_api_key') || '';
+        var msg = isEn
+            ? "Optional: Enter your personal Gemini API Key (stored privately in your browser only, never uploaded to GitHub). Leave empty to use the built-in free hybrid engine:"
+            : "اختياري: يمكنك إدخال مفتاح Gemini API الخاص بك (يُحفظ في متصفحك فقط بأمان تام ولا يُرفع إلى GitHub أبداً)، أو اتركه فارغاً لاستخدام المحرك الهجين المجاني المدمج:";
+        var k = prompt(msg, current);
+        if (k !== null) {
+            k = k.trim();
+            if (k) localStorage.setItem('nt_gemini_api_key', k);
+            else localStorage.removeItem('nt_gemini_api_key');
+        }
+    };
+
+    window.ntSpeakLast = function() {
+        if (!('speechSynthesis' in window)) return;
+        window.speechSynthesis.cancel();
+        var txt = (window.ntLastAiText || document.title || '').replace(/[*#`_~]/g, '');
+        var utter = new SpeechSynthesisUtterance(txt);
+        utter.lang = /[\u0600-\u06FF]/.test(txt) ? 'ar-SA' : 'en-US';
+        window.speechSynthesis.speak(utter);
+    };
+})();
+</script>
+<!-- NEURALTECH_ENTERPRISE_END -->
 </body>
 </html>
