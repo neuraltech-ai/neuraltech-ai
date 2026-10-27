@@ -1,5 +1,5 @@
-const CACHE_NAME = 'neuraltech-enterprise-v3';
-const ASSETS = ["./", "./index.html", "./post_agents_ar.html", "./post_agents_en.html", "./post_rag_ar.html", "./post_rag_en.html", "./post_security_ar.html", "./post_security_en.html", "./post_triage_ar.html", "./post_triage_en.html"];
+const CACHE_NAME = 'neuraltech-enterprise-v4';
+const ASSETS = ["./", "./index.html", "./assets/cover_triage.svg", "./assets/cover_security.svg", "./assets/cover_rag.svg", "./assets/cover_agents.svg", "./post_agents_ar.html", "./post_agents_en.html", "./post_rag_ar.html", "./post_rag_en.html", "./post_security_ar.html", "./post_security_en.html", "./post_triage_ar.html", "./post_triage_en.html"];
 
 self.addEventListener('install', event => {
     self.skipWaiting();
