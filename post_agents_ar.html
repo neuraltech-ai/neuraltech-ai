@@ -209,16 +209,6 @@
         footer a { color: var(--heading-color); text-decoration: none; }
     </style>
 
-<script>
-if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.getRegistrations().then(function(regs) {
-        regs.forEach(function(r) { r.unregister(); });
-    });
-}
-if ('caches' in window) {
-    caches.keys().then(function(keys) { keys.forEach(function(k) { caches.delete(k); }); });
-}
-</script>
 </head>
 <body>
 
@@ -228,7 +218,7 @@ if ('caches' in window) {
         <span>NeuralTech AI</span>
     </a>
     <div class="header-actions">
-        <a href="./post_agents_en.html" class="btn-nav">🌐 English Version</a>
+        <a href="post_agents_en.html" class="btn-nav">🌐 English Version</a>
         <a href="index.html" class="btn-nav">🏠 الرئيسية</a>
         <button id="theme-toggle-btn" class="theme-btn" onclick="toggleThemeMode()" title="تبديل المظهر">☀️</button>
     </div>
@@ -411,7 +401,7 @@ class SmartTriageEngine:
     if (/(من انت|من أنت|عرفني|وظيفتك)/.test(q)) {
       return `أنا مستشارك وزميلك التقني في منصة NeuralTech AI! مهمتي أن أرافقك أثناء القراءة لنناقش الأفكار الهندسية، ونحلل أكواد بايثون، ونتبادل الآراء حول أحدث تقنيات الذكاء الاصطناعي بأسلوب بسيط ومباشر.`;
     }
-    return `إليك الخلاصة الهندسية الدقيقة من المقال: `;
+    return `سؤال ذكي ووجهة نظر تحترم جداً! بالربط مع موضوع «${pageHeading}»، فإن تطبيق هذه المبادئ الهندسية يمنح مشاريعك البرمجية استقراراً عالياً وسرعة استجابة فورية. أخبرني، هل تفكر في تطبيق هذه الفكرة في مشروع خاص بك حالياً؟`;
   }
 
   if (origFetch) {
@@ -565,278 +555,64 @@ function filterCardsByLang(lang, btn) {
 }
 </script>
 
-
 <!-- NT_CLEAN_SUITE_START -->
 <style>
-    html, body {
-        opacity: 1 !important;
-        visibility: visible !important;
-        background-color: #0b0f19 !important;
-        color: #f8fafc !important;
-    }
-    /* إخفاء زر الدردشة القديم في أسفل اليسار لمنع الازدواجية */
-    #chat-widget, #chat-window, #chat-toggle, .chat-widget-legacy,
-    button.fixed.bottom-6.left-6, div.fixed.bottom-6.left-6,
-    [onclick*="toggleChat"], [onclick*="sendMessage"] {
-        display: none !important;
-    }
-    #nt-progress-bar {
-        position: fixed; top: 0; left: 0; height: 4px; width: 0%;
-        background: linear-gradient(90deg, #6366f1, #06b6d4, #10b981);
-        z-index: 99999; transition: width 0.15s ease-out;
-    }
-    #nt-copilot-btn {
-        position: fixed; bottom: 24px; right: 24px; z-index: 99990;
-        display: flex; align-items: center; gap: 10px;
-        background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 50%, #0891b2 100%);
-        color: #fff; border: 1px solid rgba(255,255,255,0.25);
-        padding: 13px 20px; border-radius: 9999px; font-weight: 700;
-        box-shadow: 0 12px 30px rgba(79, 70, 229, 0.55); cursor: pointer;
-    }
-    #nt-copilot-panel {
-        position: fixed; bottom: 90px; right: 24px; z-index: 99995;
-        width: min(410px, calc(100vw - 32px)); height: min(560px, calc(100vh - 130px));
-        background: rgba(15, 23, 42, 0.98); border: 1px solid rgba(99, 102, 241, 0.4);
-        border-radius: 22px; box-shadow: 0 25px 60px rgba(0,0,0,0.85);
-        display: none; flex-direction: column; overflow: hidden; color: #f8fafc;
-    }
+    #chat-widget, #chat-window, #chat-toggle, button.fixed.bottom-6.left-6, div.fixed.bottom-6.left-6, [onclick*="toggleChat"] { display: none !important; }
+    #nt-progress-bar { position: fixed; top: 0; left: 0; height: 4px; width: 0%; background: linear-gradient(90deg, #6366f1, #06b6d4, #10b981); z-index: 99999; }
+    #nt-copilot-btn { position: fixed; bottom: 24px; right: 24px; z-index: 99990; display: flex; align-items: center; gap: 10px; background: linear-gradient(135deg, #4f46e5, #7c3aed, #0891b2); color: #fff; border: 1px solid rgba(255,255,255,0.25); padding: 13px 20px; border-radius: 9999px; font-weight: 700; box-shadow: 0 12px 30px rgba(79,70,229,0.55); cursor: pointer; }
+    #nt-copilot-panel { position: fixed; bottom: 90px; right: 24px; z-index: 99995; width: min(410px, calc(100vw - 32px)); height: min(540px, calc(100vh - 130px)); background: rgba(15,23,42,0.98); border: 1px solid rgba(99,102,241,0.4); border-radius: 22px; box-shadow: 0 25px 60px rgba(0,0,0,0.85); display: none; flex-direction: column; overflow: hidden; color: #f8fafc; }
     #nt-copilot-panel.open { display: flex; }
     #nt-messages { flex: 1; overflow-y: auto; padding: 14px; display: flex; flex-direction: column; gap: 10px; }
     .nt-msg { max-width: 88%; padding: 11px 14px; border-radius: 14px; font-size: 14px; line-height: 1.6; }
     .nt-msg-ai { background: #1e293b; border: 1px solid rgba(148,163,184,0.2); align-self: flex-start; color: #e2e8f0; }
     .nt-msg-user { background: #4f46e5; color: #fff; align-self: flex-end; }
-    .nt-chip {
-        background: rgba(79,70,229,0.2); border: 1px solid rgba(99,102,241,0.45);
-        color: #c7d2fe; padding: 6px 12px; border-radius: 999px; font-size: 12px;
-        cursor: pointer; white-space: nowrap;
-    }
     .nt-dot { width: 9px; height: 9px; background: #10b981; border-radius: 50%; display: inline-block; box-shadow: 0 0 8px #10b981; }
 </style>
 <div id="nt-progress-bar"></div>
 <button id="nt-copilot-btn" onclick="document.getElementById('nt-copilot-panel').classList.toggle('open')">
-    <span class="nt-dot"></span>
-    <span>المساعد الذكي AI</span>
+    <span class="nt-dot"></span><span>المساعد الذكي AI</span>
 </button>
 <div id="nt-copilot-panel" dir="rtl">
-    <div style="padding:14px 16px;background:#1e1b4b;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid rgba(255,255,255,0.1);">
+    <div style="padding:14px 16px;background:#1e1b4b;display:flex;justify-content:space-between;align-items:center;">
         <div style="font-weight:800;font-size:14px;">⚡ NeuralTech AI Copilot</div>
-        <div style="display:flex;gap:6px;">
-            <button onclick="window.ntClear()" style="background:rgba(255,255,255,0.1);border:none;color:#fff;padding:5px 8px;border-radius:6px;cursor:pointer;">🗑️</button>
-            <button onclick="document.getElementById('nt-copilot-panel').classList.remove('open')" style="background:rgba(239,68,68,0.25);border:none;color:#fca5a5;padding:5px 9px;border-radius:6px;cursor:pointer;font-weight:bold;">✕</button>
-        </div>
+        <button onclick="document.getElementById('nt-copilot-panel').classList.remove('open')" style="background:rgba(239,68,68,0.25);border:none;color:#fca5a5;padding:4px 9px;border-radius:6px;cursor:pointer;font-weight:bold;">✕</button>
     </div>
-    <div id="nt-chips" style="padding:8px 12px;display:flex;gap:6px;overflow-x:auto;background:#0f172a;border-bottom:1px solid rgba(255,255,255,0.06);"></div>
     <div id="nt-messages"></div>
-    <form onsubmit="event.preventDefault();window.ntAsk();" style="padding:10px;background:#090d16;display:flex;gap:8px;border-top:1px solid rgba(255,255,255,0.1);">
-        <input id="nt-input" type="text" placeholder="اسأل عن المقال أو اطلب ملخصاً أو كوداً..." style="flex:1;background:#1e293b;color:#fff;border:1px solid #334155;border-radius:10px;padding:10px 12px;font-size:13px;outline:none;">
+    <form onsubmit="event.preventDefault();window.ntAsk();" style="padding:10px;background:#090d16;display:flex;gap:8px;">
+        <input id="nt-input" type="text" placeholder="اسأل عن المقال أو اطلب ملخصاً..." style="flex:1;background:#1e293b;color:#fff;border:1px solid #334155;border-radius:10px;padding:10px;font-size:13px;outline:none;">
         <button type="submit" style="background:#4f46e5;color:#fff;border:none;padding:0 16px;border-radius:10px;font-weight:bold;cursor:pointer;">إرسال</button>
     </form>
 </div>
 <script>
 (function(){
-    // مسح أي كاش قديم تسبب في الصفحة البيضاء
-    if ('caches' in window) {
-        caches.keys().then(function(keys){ keys.forEach(function(k){ if(k.indexOf('clean-v9')===-1) caches.delete(k); }); });
-    }
-    window.addEventListener('scroll', function(){
-        var d = document.documentElement;
-        var p = (d.scrollHeight - d.clientHeight) > 0 ? (d.scrollTop / (d.scrollHeight - d.clientHeight)) * 100 : 0;
-        var b = document.getElementById('nt-progress-bar');
-        if (b) b.style.width = p + '%';
+    document.querySelectorAll('button, a, div').forEach(function(el){
+        if (el.id === 'nt-copilot-btn' || el.closest('#nt-copilot-panel') || el.closest('header')) return;
+        var t = (el.innerText || '').trim();
+        if (t.indexOf('NeuralTech AI') !== -1 && t.indexOf('✨') !== -1 && el.children.length <= 2) el.remove();
     });
-    // إخفاء أي زر عائم قديم في أسفل اليسار
-    document.querySelectorAll('button, div, a').forEach(function(el){
-        if (el.id === 'nt-copilot-btn' || el.closest('#nt-copilot-panel')) return;
-        var st = window.getComputedStyle(el);
-        if (st.position === 'fixed' && (el.innerText || '').indexOf('NeuralTech AI') !== -1) {
-            el.style.setProperty('display', 'none', 'important');
-        }
-    });
-    var chips = ["لخّص هذا المقال", "اشرح بمثال Python", "الفرق بين RAG والوكلاء", "كيف نحمي النماذج أمنياً؟"];
-    var cbar = document.getElementById('nt-chips');
-    chips.forEach(function(c){
-        var b = document.createElement('button');
-        b.className = 'nt-chip'; b.textContent = c;
-        b.onclick = function(){ document.getElementById('nt-input').value = c; window.ntAsk(); };
-        cbar.appendChild(b);
-    });
-    function addMsg(role, txt) {
-        var m = document.getElementById('nt-messages');
+    var m = document.getElementById('nt-messages');
+    function add(r, txt){
         var d = document.createElement('div');
-        d.className = 'nt-msg ' + (role === 'user' ? 'nt-msg-user' : 'nt-msg-ai');
-        d.innerHTML = txt.replace(/\*\*([^*]+)\*\*/g, '<strong style="color:#38bdf8">$1</strong>').replace(/\n/g, '<br>');
+        d.className = 'nt-msg ' + (r==='u'?'nt-msg-user':'nt-msg-ai');
+        d.innerHTML = txt.replace(/\n/g, '<br>');
         m.appendChild(d); m.scrollTop = m.scrollHeight;
         return d;
     }
-    window.ntClear = function(){
-        document.getElementById('nt-messages').innerHTML = '';
-        addMsg('ai', 'مرحباً بك في **NeuralTech AI**! اسألني أي سؤال حول: **' + document.title + '**');
-    };
-    window.ntClear();
-    window.ntAsk = async function(){
+    add('ai', 'مرحباً بك! اسألني أي سؤال أو اطلب ملخصاً لمقال: ' + document.title);
+    window.ntAsk = function(){
         var inp = document.getElementById('nt-input');
         var q = (inp.value || '').trim();
-        if (!q) return;
-        inp.value = '';
-        addMsg('user', q);
-        var wait = addMsg('ai', '⏳ جاري تحليل سؤالك واستخراج الإجابة الدقيقة...');
-        var reply = await window.generateContextualReply(q);
-        wait.innerHTML = reply.replace(/\*\*([^*]+)\*\*/g, '<strong style="color:#38bdf8">$1</strong>').replace(/
-/g, '<br>');
+        if(!q) return;
+        inp.value = ''; add('u', q);
+        var ps = [];
+        document.querySelectorAll('article p, article li').forEach(function(p){
+            var t = (p.innerText || '').trim();
+            if(t.length > 30 && ps.indexOf(t) === -1) ps.push('• ' + t);
+        });
+        add('ai', '📋 الخلاصة الدقيقة من المقال:\n\n' + (ps.slice(0, 4).join('\n\n') || document.title));
     };
 })();
 </script>
 <!-- NT_CLEAN_SUITE_END -->
-
-<!-- NT_SMART_INTERACTIVE_ENGINE_START -->
-<script>
-(function() {
-    // 1. مسح الردود القديمة المكررة المخزنة في المتصفح ("سؤال ذكي ووجهة نظر تحترم جداً")
-    try {
-        Object.keys(localStorage).forEach(function(k) {
-            var val = localStorage.getItem(k) || '';
-            if (val.indexOf('سؤال ذكي ووجهة نظر تحترم') !== -1) {
-                localStorage.removeItem(k);
-            }
-        });
-    } catch(e) {}
-
-    // 2. استخراج فقرات وعناوين المقال الفعلي من الصفحة
-    function extractArticleData() {
-        var title = (document.querySelector('h1') ? document.querySelector('h1').innerText : document.title).trim();
-        var headings = [];
-        var paragraphs = [];
-        var codeBlocks = [];
-
-        document.querySelectorAll('article h2, article h3, main h2, main h3').forEach(function(h) {
-            var t = (h.innerText || '').trim();
-            if (t.length > 5 && headings.indexOf(t) === -1) headings.push(t);
-        });
-
-        document.querySelectorAll('article p, article li, main p, main li').forEach(function(p) {
-            if (p.closest('#nt-copilot-panel') || p.innerText.indexOf('سؤال ذكي ووجهة نظر') !== -1) return;
-            var t = (p.innerText || '').trim();
-            if (t.length > 40 && paragraphs.indexOf(t) === -1) paragraphs.push(t);
-        });
-
-        document.querySelectorAll('pre code, pre').forEach(function(c) {
-            var t = (c.innerText || '').trim();
-            if (t.length > 20 && codeBlocks.indexOf(t) === -1) codeBlocks.push(t);
-        });
-
-        return { title: title, headings: headings, paragraphs: paragraphs, codes: codeBlocks };
-    }
-
-    // 3. المولّد التفاعلي الذكي الذي يعطي إجابة حقيقية مخصصة لكل سؤال (بدون أي جمل معلبة مكررة)
-    window.generateContextualReply = async function(userQuestion) {
-        var q = (userQuestion || '').trim();
-        var ql = q.toLowerCase();
-        var data = extractArticleData();
-        var isEn = /_en\.html/i.test(location.pathname) && !/[\u0600-\u06FF]/.test(q);
-
-        // أ) محاولة الاتصال السحابي السريع لتوليد إجابة مخصصة 100% لسؤال القارئ
-        try {
-            var ctrl = new AbortController();
-            var timer = setTimeout(function() { ctrl.abort(); }, 4500);
-            var contextSnippet = data.paragraphs.slice(0, 6).join(" | ");
-            var sys = "أنت خبير هندسة ذكاء اصطناعي في منصة نيورال تك (NeuralTech AI). أجب مباشرة وبدقة واحترافية على سؤال القارئ دون مقدمات مكررة، بالاعتماد على محتوى المقال الحالي. عنوان المقال: (" + data.title + "). مقتطفات المقال: " + contextSnippet;
-            var res = await fetch("https://text.pollinations.ai/openai", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    model: "openai",
-                    messages: [
-                        { role: "system", content: sys },
-                        { role: "user", content: q }
-                    ]
-                }),
-                signal: ctrl.signal
-            });
-            clearTimeout(timer);
-            if (res.ok) {
-                var json = await res.json();
-                var reply = json.choices && json.choices[0] && json.choices[0].message && json.choices[0].message.content;
-                if (reply && reply.length > 20) return reply;
-            }
-        } catch(e) {}
-
-        // ب) المحرك الدلالي الفوري (يعمل في 0.01 ثانية حتى بدون إنترنت ويحلل سؤال المستخدم بدقة)
-        // 1. إذا طلب ملخصاً للمقال
-        if (/لخص|ملخص|تلخيص|خلاص|فكرة|عن ماذا|summar|tldr|overview/i.test(ql)) {
-            var bulletPoints = data.paragraphs.slice(0, 4).map(function(p, idx) {
-                return (idx + 1) + ". " + p;
-            }).join("\n\n");
-            var secs = data.headings.length > 0 ? ("\n\n📌 **المحاور الهندسية الرئيسية في المقال:**\n• " + data.headings.slice(0, 5).join("\n• ")) : "";
-            return "📋 **الملخص التنفيذي لمقال («" + data.title + "»):**\n\n" + (bulletPoints || "يستعرض هذا المقال المعمارية الهندسية المتقدمة لتطبيقات الذكاء الاصطناعي.") + secs;
-        }
-
-        // 2. إذا طلب كوداً أو مثالاً برمجياً
-        if (/كود|برمج|بايثون|مثال|تطبيق|code|python|script|example/i.test(ql)) {
-            if (data.codes.length > 0) {
-                return "💻 **إليك النموذج البرمجي التطبيقي من المقال:**\n\n```python\n" + data.codes[0].slice(0, 700) + "\n```\n\n💡 يوضح هذا الكود كيفية بناء وتنفيذ المعمارية المشروحة في («" + data.title + "») بشكل عملي.";
-            }
-            return "💻 **نموذج برمجي تطبيقي (Python) مرتبط بـ «" + data.title + "»:**\n\n```python\nclass NeuralTechEngine:\n    def __init__(self, model='gemini-2.5-flash'):\n        self.model = model\n        self.memory = []\n\n    def analyze_and_execute(self, payload):\n        # فحص المدخلات وتطبيق المعمارية الذكية\n        validated = self.verify_security(payload)\n        return {'status': 'verified', 'result': validated}\n```";
-        }
-
-        // 3. إذا كتب المستخدم رداً حوارياً قصيراً (مثل: "لا أظن ذلك في الوقت الحالي" أو "شكراً" أو "نعم")
-        if (/لا اظن|لا أظن|في الوقت الحالي|ليس الآن|ربما لاحق|شكر|ممتاز|جميل|رائع|نعم|أكيد/i.test(ql)) {
-            return "أحترم قرارك تماماً! 💡 الفائدة الأهم من دراسة المعماريات المتقدمة مثل **«" + data.title + "»** هي امتلاك الرؤية الهندسية مسبقاً، بحيث عندما تقرر بناء مشروعك مستقبلاً تكون على دراية تامة بكيفية تجنب الأخطاء الشائعة. يمكنك في أي وقت طلب **ملخص سريع** أو **شرح لأي مصطلح تقني** داخل المقال!";
-        }
-
-        // 4. بحث دلالي ذكي داخل فقرات المقال للعثور على الفقرة الأكثر ارتباطاً بكلمات سؤال القارئ
-        var words = ql.replace(/[^\w\u0600-\u06FF\s]/g, '').split(/\s+/).filter(function(w) { return w.length > 2; });
-        var bestMatches = [];
-        data.paragraphs.forEach(function(p) {
-            var score = 0;
-            var pl = p.toLowerCase();
-            words.forEach(function(w) { if (pl.indexOf(w) !== -1) score += 3; });
-            if (score > 0) bestMatches.push({ text: p, score: score });
-        });
-        bestMatches.sort(function(a, b) { return b.score - a.score; });
-
-        if (bestMatches.length > 0) {
-            var ans = bestMatches.slice(0, 2).map(function(m) { return "• " + m.text; }).join("\n\n");
-            return "🔍 **بناءً على التحليل الهندسي في المقال:**\n\n" + ans;
-        }
-
-        // 5. إذا كان سؤالاً عاماً غير مذكور نصاً في الفقرات، نعطيه أهم ركائز المقال الفعلية دون تكرار
-        var randomIdx = Math.floor(Math.random() * Math.max(1, data.paragraphs.length));
-        var chosenPara = data.paragraphs[randomIdx] || data.title;
-        return "💡 **توضيح تقني حول سؤالك في سياق («" + data.title + "»):**\n\n• " + chosenPara + (data.headings[0] ? "\n\n• يرتبط هذا مباشرة بمحور: **" + data.headings[0] + "** المشروح في المقال." : "");
-    };
-
-    // 4. استبدال أي رد قديم مكرر يظهر في الصفحة حالياً أو عند إرسال تعليق جديد
-    function upgradeExistingCommentSystem() {
-        // حذف البطاقات التي تحتوي على الرد المعلب القديم من DOM وتحديثها
-        document.querySelectorAll('div, p').forEach(function(el) {
-            if (el.children.length === 0 && (el.innerText || '').indexOf('سؤال ذكي ووجهة نظر تحترم جداً') !== -1) {
-                var data = extractArticleData();
-                el.innerText = "📋 الملخص التنفيذي للمقال: " + (data.paragraphs.slice(0, 2).join(" — ") || data.title);
-            }
-        });
-    }
-
-    window.addEventListener('DOMContentLoaded', upgradeExistingCommentSystem);
-    setTimeout(upgradeExistingCommentSystem, 400);
-})();
-</script>
-<!-- NT_SMART_INTERACTIVE_ENGINE_END -->
-<script>
-(function() {
-    function nukeLegacyButtons() {
-        document.querySelectorAll('button, a, div').forEach(function(el) {
-            if (el.id === 'nt-copilot-btn' || el.closest('#nt-copilot-panel') || el.closest('header') || el.closest('nav')) return;
-            var txt = (el.innerText || '').trim();
-            if ((txt === 'NeuralTech AI ✨' || txt === '✨ NeuralTech AI' || (txt.indexOf('NeuralTech AI') !== -1 && txt.indexOf('✨') !== -1)) && el.children.length <= 2) {
-                el.remove();
-            }
-        });
-    }
-    nukeLegacyButtons();
-    window.addEventListener('DOMContentLoaded', nukeLegacyButtons);
-    setTimeout(nukeLegacyButtons, 300);
-    setTimeout(nukeLegacyButtons, 1000);
-})();
-</script>
 </body>
 </html>
