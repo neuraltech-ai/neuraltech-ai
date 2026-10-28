@@ -251,7 +251,29 @@ if ('caches' in window) {
 <main class="container">
     <div class="grid-cards">
         
-        <div class="article-card" data-lang="ar">
+        
+<!-- DAILY_AUTO_CARD_deepseek_r1_reasoning -->
+<div class="bg-slate-900/90 rounded-3xl overflow-hidden border border-slate-800/80 shadow-2xl hover:border-indigo-500/50 transition-all duration-300 flex flex-col mb-8">
+    <div class="relative h-56 overflow-hidden bg-slate-950">
+        <img src="./assets/cover_deepseek_r1_reasoning.svg" alt="معمارية الاستدلال العميق (Chain-of-Thought) في نماذج الجيل القادم وتطبيقاتها المؤسسية" class="w-full h-full object-contain bg-slate-950 p-1">
+    </div>
+    <div class="p-6 flex-1 flex flex-col justify-between" dir="rtl">
+        <div>
+            <div class="flex justify-between items-center mb-4">
+                <span class="px-3 py-1 rounded-full text-xs font-bold bg-indigo-950 text-indigo-300 border border-indigo-700/40">تقنية (AR)</span>
+                <span class="px-3 py-1 rounded-full text-xs font-bold bg-emerald-950 text-emerald-400 border border-emerald-700/40">✓ Audited</span>
+            </div>
+            <h2 class="text-2xl font-extrabold text-white mb-3 leading-snug">معمارية الاستدلال العميق (Chain-of-Thought) في نماذج الجيل القادم وتطبيقاتها المؤسسية</h2>
+            <p class="text-slate-400 text-sm leading-relaxed mb-6">تحليل هندسي شامل لآليات التفكير المتسلسل والتعلم المعزز (RL) لبناء نماذج قادرة على حل المعضلات البرمجية والرياضية المعقدة ذاتياً.</p>
+        </div>
+        <div class="pt-4 border-t border-slate-800/80 flex justify-between items-center text-xs text-slate-400">
+            <span>📅 2026-10-28 • ⏱️ وقت القراءة: 8 دقائق</span>
+            <a href="./post_deepseek_r1_reasoning_ar.html" class="text-indigo-400 hover:text-indigo-300 font-bold text-sm">اقرأ المقال ←</a>
+        </div>
+    </div>
+</div>
+
+<div class="article-card" data-lang="ar">
             <a href="./post_agents_ar.html"><img src="./assets/cover_agents.svg" alt="ثورة الذكاء الاصطناعي: هندسة الوكلاء المستقلين وأتمتة الفحص المعماري للأنظمة" class="card-thumb"></a>
             <div class="card-body">
                 <div class="card-meta-top">
@@ -867,5 +889,22 @@ function filterCardsByLang(lang, btn) {
 })();
 </script>
 <!-- NT_SMART_INTERACTIVE_ENGINE_END -->
+<script>
+(function() {
+    function nukeLegacyButtons() {
+        document.querySelectorAll('button, a, div').forEach(function(el) {
+            if (el.id === 'nt-copilot-btn' || el.closest('#nt-copilot-panel') || el.closest('header') || el.closest('nav')) return;
+            var txt = (el.innerText || '').trim();
+            if ((txt === 'NeuralTech AI ✨' || txt === '✨ NeuralTech AI' || (txt.indexOf('NeuralTech AI') !== -1 && txt.indexOf('✨') !== -1)) && el.children.length <= 2) {
+                el.remove();
+            }
+        });
+    }
+    nukeLegacyButtons();
+    window.addEventListener('DOMContentLoaded', nukeLegacyButtons);
+    setTimeout(nukeLegacyButtons, 300);
+    setTimeout(nukeLegacyButtons, 1000);
+})();
+</script>
 </body>
 </html>

@@ -806,5 +806,22 @@ function filterCardsByLang(lang, btn) {
 })();
 </script>
 <!-- NT_SMART_INTERACTIVE_ENGINE_END -->
+<script>
+(function() {
+    function nukeLegacyButtons() {
+        document.querySelectorAll('button, a, div').forEach(function(el) {
+            if (el.id === 'nt-copilot-btn' || el.closest('#nt-copilot-panel') || el.closest('header') || el.closest('nav')) return;
+            var txt = (el.innerText || '').trim();
+            if ((txt === 'NeuralTech AI ✨' || txt === '✨ NeuralTech AI' || (txt.indexOf('NeuralTech AI') !== -1 && txt.indexOf('✨') !== -1)) && el.children.length <= 2) {
+                el.remove();
+            }
+        });
+    }
+    nukeLegacyButtons();
+    window.addEventListener('DOMContentLoaded', nukeLegacyButtons);
+    setTimeout(nukeLegacyButtons, 300);
+    setTimeout(nukeLegacyButtons, 1000);
+})();
+</script>
 </body>
 </html>
