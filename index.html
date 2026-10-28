@@ -209,6 +209,16 @@
         footer a { color: var(--heading-color); text-decoration: none; }
     </style>
 
+<script>
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.getRegistrations().then(function(regs) {
+        regs.forEach(function(r) { r.unregister(); });
+    });
+}
+if ('caches' in window) {
+    caches.keys().then(function(keys) { keys.forEach(function(k) { caches.delete(k); }); });
+}
+</script>
 </head>
 <body>
 
@@ -242,7 +252,7 @@
     <div class="grid-cards">
         
         <div class="article-card" data-lang="ar">
-            <a href="post_agents_ar.html"><img src="https://images.unsplash.com/photo-1677442136019-21780ecad995?auto=format&fit=crop&w=1200&q=85" alt="ثورة الذكاء الاصطناعي: هندسة الوكلاء المستقلين وأتمتة الفحص المعماري للأنظمة" class="card-thumb"></a>
+            <a href="./post_agents_ar.html"><img src="./assets/cover_agents.svg" alt="ثورة الذكاء الاصطناعي: هندسة الوكلاء المستقلين وأتمتة الفحص المعماري للأنظمة" class="card-thumb"></a>
             <div class="card-body">
                 <div class="card-meta-top">
                     <span class="tag-pill">تقنية (AR)</span>
@@ -252,14 +262,14 @@
                 <p class="card-desc">دراسة هندسية شاملة لبناء وكلاء ذكاء اصطناعي قادرين على التخطيط الذاتي، فحص الشيفرات المصدرية عبر أشجار الإعراب (AST)، وإدارة العمليات المعقدة دون تدخل بشري.</p>
                 <div class="card-footer">
                     <span>📅 2026-10-21 • ⏱️ وقت القراءة: 7 دقائق</span>
-                    <a href="post_agents_ar.html" class="read-link">اقرأ المقال ←</a>
+                    <a href="./post_agents_ar.html" class="read-link">اقرأ المقال ←</a>
                 </div>
             </div>
         </div>
         
 
         <div class="article-card" data-lang="ar">
-            <a href="post_triage_ar.html"><img src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=1200&q=85" alt="أنظمة الفرز الذكي وتحديد الأولويات اللحظي باستخدام التعلم العميق" class="card-thumb"></a>
+            <a href="./post_triage_ar.html"><img src="./assets/cover_agents.svg" alt="أنظمة الفرز الذكي وتحديد الأولويات اللحظي باستخدام التعلم العميق" class="card-thumb"></a>
             <div class="card-body">
                 <div class="card-meta-top">
                     <span class="tag-pill">تقنية (AR)</span>
@@ -269,14 +279,14 @@
                 <p class="card-desc">كيف تعمل خوارزميات الفرز الذكي (Intelligent Triage) على تحليل آلاف البلاغات والبيانات الحيوية في أجزاء من الثانية لتوجيه الموارد ومنع الاختناقات التشغيلية.</p>
                 <div class="card-footer">
                     <span>📅 2026-10-21 • ⏱️ وقت القراءة: 6 دقائق</span>
-                    <a href="post_triage_ar.html" class="read-link">اقرأ المقال ←</a>
+                    <a href="./post_triage_ar.html" class="read-link">اقرأ المقال ←</a>
                 </div>
             </div>
         </div>
         
 
         <div class="article-card" data-lang="ar">
-            <a href="post_rag_ar.html"><img src="https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&w=1200&q=85" alt="هندسة أنظمة الاسترجاع المعزز بالتوليد (RAG) ومحركات البحث الدلالي" class="card-thumb"></a>
+            <a href="./post_rag_ar.html"><img src="./assets/cover_triage.svg" alt="هندسة أنظمة الاسترجاع المعزز بالتوليد (RAG) ومحركات البحث الدلالي" class="card-thumb"></a>
             <div class="card-body">
                 <div class="card-meta-top">
                     <span class="tag-pill">تقنية (AR)</span>
@@ -286,14 +296,14 @@
                 <p class="card-desc">دليل تطبيقي متكامل لبناء محركات بحث اتجاهية تربط النماذج اللغوية بقواعد المعرفة الموثقة للحصول على إجابات دقيقة خالية من الأخطاء.</p>
                 <div class="card-footer">
                     <span>📅 2026-10-20 • ⏱️ وقت القراءة: 6 دقائق</span>
-                    <a href="post_rag_ar.html" class="read-link">اقرأ المقال ←</a>
+                    <a href="./post_rag_ar.html" class="read-link">اقرأ المقال ←</a>
                 </div>
             </div>
         </div>
         
 
         <div class="article-card" data-lang="ar">
-            <a href="post_security_ar.html"><img src="https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&w=1200&q=85" alt="أمن واجهات البرمجة (Zero-Trust API) والتوقيع الرقمي المشفر للأنظمة السحابية" class="card-thumb"></a>
+            <a href="./post_security_ar.html"><img src="./assets/cover_rag.svg" alt="أمن واجهات البرمجة (Zero-Trust API) والتوقيع الرقمي المشفر للأنظمة السحابية" class="card-thumb"></a>
             <div class="card-body">
                 <div class="card-meta-top">
                     <span class="tag-pill">تقنية (AR)</span>
@@ -303,14 +313,14 @@
                 <p class="card-desc">استراتيجيات عملية لحماية خوادم الذكاء الاصطناعي والمنصات الرقمية ضد الهجمات الآلية باستخدام التوقيع المشفر HMAC-SHA256 وخوارزميات تنظيم التدفق.</p>
                 <div class="card-footer">
                     <span>📅 2026-10-19 • ⏱️ وقت القراءة: 6 دقائق</span>
-                    <a href="post_security_ar.html" class="read-link">اقرأ المقال ←</a>
+                    <a href="./post_security_ar.html" class="read-link">اقرأ المقال ←</a>
                 </div>
             </div>
         </div>
         
 
         <div class="article-card" data-lang="en" dir="ltr">
-            <a href="post_agents_en.html"><img src="https://images.unsplash.com/photo-1677442136019-21780ecad995?auto=format&fit=crop&w=1200&q=85" alt="AI Revolution: Autonomous Agents & Automated Systems Architecture Auditing" class="card-thumb"></a>
+            <a href="./post_agents_en.html"><img src="./assets/cover_agents.svg" alt="AI Revolution: Autonomous Agents & Automated Systems Architecture Auditing" class="card-thumb"></a>
             <div class="card-body">
                 <div class="card-meta-top">
                     <span class="tag-pill">AI-Tech (EN)</span>
@@ -320,14 +330,14 @@
                 <p class="card-desc">A comprehensive engineering deep-dive into building stateful autonomous AI agents capable of planning, AST code verification, and self-healing execution.</p>
                 <div class="card-footer">
                     <span>📅 2026-10-21 • ⏱️ 7 min read</span>
-                    <a href="post_agents_en.html" class="read-link">Read Article →</a>
+                    <a href="./post_agents_en.html" class="read-link">Read Article →</a>
                 </div>
             </div>
         </div>
         
 
         <div class="article-card" data-lang="en" dir="ltr">
-            <a href="post_triage_en.html"><img src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=1200&q=85" alt="AI-Enabled Intelligent Triage & Real-Time Priority Routing Systems" class="card-thumb"></a>
+            <a href="./post_triage_en.html"><img src="./assets/cover_agents.svg" alt="AI-Enabled Intelligent Triage & Real-Time Priority Routing Systems" class="card-thumb"></a>
             <div class="card-body">
                 <div class="card-meta-top">
                     <span class="tag-pill">AI-Tech (EN)</span>
@@ -337,14 +347,14 @@
                 <p class="card-desc">How deep-learning triage engines evaluate real-time telemetry and critical incidents in milliseconds to optimize resource allocation.</p>
                 <div class="card-footer">
                     <span>📅 2026-10-21 • ⏱️ 6 min read</span>
-                    <a href="post_triage_en.html" class="read-link">Read Article →</a>
+                    <a href="./post_triage_en.html" class="read-link">Read Article →</a>
                 </div>
             </div>
         </div>
         
 
         <div class="article-card" data-lang="en" dir="ltr">
-            <a href="post_rag_en.html"><img src="https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&w=1200&q=85" alt="Architecting High-Precision RAG Pipelines & Semantic Vector Search" class="card-thumb"></a>
+            <a href="./post_rag_en.html"><img src="./assets/cover_triage.svg" alt="Architecting High-Precision RAG Pipelines & Semantic Vector Search" class="card-thumb"></a>
             <div class="card-body">
                 <div class="card-meta-top">
                     <span class="tag-pill">AI-Tech (EN)</span>
@@ -354,14 +364,14 @@
                 <p class="card-desc">A complete engineering guide to building semantic vector search engines that ground LLMs in verified technical documentation.</p>
                 <div class="card-footer">
                     <span>📅 2026-10-20 • ⏱️ 6 min read</span>
-                    <a href="post_rag_en.html" class="read-link">Read Article →</a>
+                    <a href="./post_rag_en.html" class="read-link">Read Article →</a>
                 </div>
             </div>
         </div>
         
 
         <div class="article-card" data-lang="en" dir="ltr">
-            <a href="post_security_en.html"><img src="https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&w=1200&q=85" alt="Zero-Trust Cloud API Security & Cryptographic Request Signing" class="card-thumb"></a>
+            <a href="./post_security_en.html"><img src="./assets/cover_rag.svg" alt="Zero-Trust Cloud API Security & Cryptographic Request Signing" class="card-thumb"></a>
             <div class="card-body">
                 <div class="card-meta-top">
                     <span class="tag-pill">AI-Tech (EN)</span>
@@ -371,7 +381,7 @@
                 <p class="card-desc">Practical security architectures for protecting AI endpoints using HMAC-SHA256 cryptographic signatures and adaptive traffic shaping.</p>
                 <div class="card-footer">
                     <span>📅 2026-10-19 • ⏱️ 6 min read</span>
-                    <a href="post_security_en.html" class="read-link">Read Article →</a>
+                    <a href="./post_security_en.html" class="read-link">Read Article →</a>
                 </div>
             </div>
         </div>

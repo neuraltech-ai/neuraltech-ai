@@ -209,6 +209,16 @@
         footer a { color: var(--heading-color); text-decoration: none; }
     </style>
 
+<script>
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.getRegistrations().then(function(regs) {
+        regs.forEach(function(r) { r.unregister(); });
+    });
+}
+if ('caches' in window) {
+    caches.keys().then(function(keys) { keys.forEach(function(k) { caches.delete(k); }); });
+}
+</script>
 </head>
 <body>
 
@@ -218,7 +228,7 @@
         <span>NeuralTech AI</span>
     </a>
     <div class="header-actions">
-        <a href="post_rag_ar.html" class="btn-nav">🌐 النسخة العربية</a>
+        <a href="./post_rag_ar.html" class="btn-nav">🌐 النسخة العربية</a>
         <a href="index.html" class="btn-nav">🏠 Home</a>
         <button id="theme-toggle-btn" class="theme-btn" onclick="toggleThemeMode()" title="تبديل المظهر">☀️</button>
     </div>
@@ -236,7 +246,7 @@
 
 <div class="post-container">
     <article class="post-card">
-        <img src="https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&w=1200&q=85" alt="Architecting High-Precision RAG Pipelines & Semantic Vector Search" class="post-hero">
+        <img src="./assets/cover_rag.svg" alt="Architecting High-Precision RAG Pipelines & Semantic Vector Search" class="post-hero">
         <div class="card-meta-top">
             <span class="tag-pill">AI-Tech (EN)</span>
             <span class="audit-badge">✅ AI Audited & Code Verified</span>

@@ -209,6 +209,16 @@
         footer a { color: var(--heading-color); text-decoration: none; }
     </style>
 
+<script>
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.getRegistrations().then(function(regs) {
+        regs.forEach(function(r) { r.unregister(); });
+    });
+}
+if ('caches' in window) {
+    caches.keys().then(function(keys) { keys.forEach(function(k) { caches.delete(k); }); });
+}
+</script>
 </head>
 <body>
 
@@ -218,7 +228,7 @@
         <span>NeuralTech AI</span>
     </a>
     <div class="header-actions">
-        <a href="post_security_en.html" class="btn-nav">🌐 English Version</a>
+        <a href="./post_security_en.html" class="btn-nav">🌐 English Version</a>
         <a href="index.html" class="btn-nav">🏠 الرئيسية</a>
         <button id="theme-toggle-btn" class="theme-btn" onclick="toggleThemeMode()" title="تبديل المظهر">☀️</button>
     </div>
@@ -236,7 +246,7 @@
 
 <div class="post-container">
     <article class="post-card">
-        <img src="https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&w=1200&q=85" alt="أمن واجهات البرمجة (Zero-Trust API) والتوقيع الرقمي المشفر للأنظمة السحابية" class="post-hero">
+        <img src="./assets/cover_security.svg" alt="أمن واجهات البرمجة (Zero-Trust API) والتوقيع الرقمي المشفر للأنظمة السحابية" class="post-hero">
         <div class="card-meta-top">
             <span class="tag-pill">تقنية (AR)</span>
             <span class="audit-badge">✅ مقال وأكواد مدققة برمجياً</span>
