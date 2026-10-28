@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630">
+    <defs><linearGradient id="g_quantum_ai_synergy" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#0f172a"/><stop offset="100%" stop-color="#1e1b4b"/></linearGradient></defs>
+    <rect width="1200" height="630" fill="url(#g_quantum_ai_synergy)"/>
+    <g stroke="#38bdf8" stroke-width="1" opacity="0.25"><path d="M0 126 H1200 M0 252 H1200 M0 378 H1200 M0 504 H1200"/><path d="M240 0 V630 M480 0 V630 M720 0 V630 M960 0 V630"/></g>
+    <g stroke="#a855f7" stroke-width="4" opacity="0.85"><line x1="600" y1="285" x2="250" y2="155"/><line x1="600" y1="285" x2="950" y2="155"/><line x1="600" y1="285" x2="600" y2="485"/></g>
+    <circle cx="600" cy="285" r="105" fill="#090d16" stroke="#38bdf8" stroke-width="5"/>
+    <text x="600" y="278" fill="#ffffff" font-family="sans-serif" font-size="21" font-weight="bold" text-anchor="middle">QUANTUM AI</text>
+    <text x="600" y="312" fill="#a855f7" font-family="sans-serif" font-size="17" font-weight="bold" text-anchor="middle">NeuralTech AI</text>
+    <rect x="90" y="95" width="320" height="115" rx="20" fill="#0f172a" stroke="#a855f7" stroke-width="3"/>
+    <text x="250" y="148" fill="#a855f7" font-family="sans-serif" font-size="20" font-weight="bold" text-anchor="middle">QUBIT MATRIX</text>
+    <text x="250" y="178" fill="#e2e8f0" font-family="sans-serif" font-size="15" text-anchor="middle">تحليل ذكي وتطبيق عملي</text>
+    <rect x="790" y="95" width="320" height="115" rx="20" fill="#0f172a" stroke="#38bdf8" stroke-width="3"/>
+    <text x="950" y="148" fill="#f8fafc" font-family="sans-serif" font-size="20" font-weight="bold" text-anchor="middle">HYPER SPEED</text>
+    <text x="950" y="178" fill="#cbd5e1" font-family="sans-serif" font-size="15" text-anchor="middle">موثوقية وقيمة معرفية</text>
+    <rect x="260" y="455" width="680" height="95" rx="20" fill="#064e3b" stroke="#10b981" stroke-width="3"/>
+    <text x="600" y="495" fill="#6ee7b7" font-family="sans-serif" font-size="20" font-weight="bold" text-anchor="middle">⚡ NEURALTECH INSIGHTS • 2026-10-28</text>
+    <text x="600" y="528" fill="#ecfdf5" font-family="sans-serif" font-size="17" font-weight="bold" text-anchor="middle">عندما يلتقي الذكاء الاصطناعي بالحوسبة الكمومية: ثو...</text>
+</svg>

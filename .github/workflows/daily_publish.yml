@@ -1,33 +1,28 @@
-name: Daily Autonomous AI Blog Publisher
+name: Non-Stop Dual Daily AI Publisher
 
 on:
   schedule:
-    - cron: '0 8 * * *'
+    - cron: '0 7 * * *'
+    - cron: '0 18 * * *'
   workflow_dispatch:
 
 permissions:
   contents: write
 
 jobs:
-  publish_daily_post:
+  publish_daily:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-
-      - name: Generate and publish daily enterprise AI article
-        run: |
-          python3 ultimate_daily_automation.py
-
-      - name: Commit and push new daily article
+      - name: Generate daily bilingual articles with original dark theme
+        run: python3 master_daily_publisher.py
+      - name: Commit and Push
         run: |
           git config --local user.email "bot@neuraltech-ai.github.io"
-          git config --local user.name "NeuralTech Autonomous Publisher"
+          git config --local user.name "NeuralTech Daily Publisher"
           git add .
-          git diff --staged --quiet || git commit -m "Auto-publish daily AI engineering article"
+          git diff --staged --quiet || git commit -m "Auto-publish 2 daily bilingual AI articles"
           git push origin main
