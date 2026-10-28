@@ -1,32 +1,12 @@
-const CACHE_NAME = 'neuraltech-enterprise-v4';
-const ASSETS = ["./", "./index.html", "./assets/cover_triage.svg", "./assets/cover_security.svg", "./assets/cover_rag.svg", "./assets/cover_agents.svg", "./post_agents_ar.html", "./post_agents_en.html", "./post_rag_ar.html", "./post_rag_en.html", "./post_security_ar.html", "./post_security_en.html", "./post_triage_ar.html", "./post_triage_en.html"];
-
-self.addEventListener('install', event => {
-    self.skipWaiting();
-    event.waitUntil(
-        caches.open(CACHE_NAME).then(cache => cache.addAll(ASSETS).catch(() => {}))
+const CACHE_NAME = 'neuraltech-clean-v9';
+self.addEventListener('install', e => { self.skipWaiting(); });
+self.addEventListener('activate', e => {
+    e.waitUntil(
+        caches.keys().then(keys => Promise.all(keys.map(k => caches.delete(k))))
+        .then(() => self.clients.claim())
     );
 });
-
-self.addEventListener('activate', event => {
-    event.waitUntil(
-        caches.keys().then(keys => Promise.all(
-            keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k))
-        )).then(() => self.clients.claim())
-    );
-});
-
-self.addEventListener('fetch', event => {
-    if (event.request.method !== 'GET') return;
-    event.respondWith(
-        fetch(event.request)
-            .then(response => {
-                if (response && response.status === 200 && response.type === 'basic') {
-                    const clone = response.clone();
-                    caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
-                }
-                return response;
-            })
-            .catch(() => caches.match(event.request).then(res => res || caches.match('./index.html')))
-    );
+self.addEventListener('fetch', e => {
+    if (e.request.method !== 'GET') return;
+    e.respondWith(fetch(e.request).catch(() => caches.match(e.request)));
 });
