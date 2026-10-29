@@ -1,0 +1,28 @@
+name: Eternal Daily Bilingual AI Publisher (AR + EN)
+
+on:
+  schedule:
+    - cron: '0 6 * * *'
+    - cron: '0 18 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  publish_bilingual_daily:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Run Eternal Bilingual Publisher
+        run: python3 eternal_bilingual_publisher.py
+      - name: Commit and Push New Articles
+        run: |
+          git config --local user.email "bot@neuraltech-ai.github.io"
+          git config --local user.name "NeuralTech Eternal Publisher"
+          git add -A
+          git diff --staged --quiet || git commit -m "Auto-publish daily AR & EN high-value articles"
+          git push origin main

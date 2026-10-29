@@ -1035,3 +1035,6 @@ for py_script in glob.glob("*.py"):
 print("🎉 اكتملت عملية إعادة البناء والتدقيق الشامل بنجاح 100%!")
 
 
+
+import subprocess
+subprocess.run(['python3', 'eternal_bilingual_publisher.py'])
