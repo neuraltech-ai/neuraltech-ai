@@ -194,7 +194,7 @@ _last_poll = 0.0
 
 def call_pollinations(messages, want_json):
     global _last_poll
-    payload = {"model": POLL_MODEL, "messages": messages, "temperature": 0.7}
+    payload = {"model": POLL_MODEL, "messages": messages, "temperature": 0.7, "max_tokens": 4000}
     if want_json:
         payload["response_format"] = {"type": "json_object"}
     headers = {"Authorization": f"Bearer {POLL_KEY}"} if POLL_KEY else {}
@@ -209,9 +209,10 @@ def call_pollinations(messages, want_json):
             log(f"   ✓ Pollinations ({POLL_MODEL})")
             return out
         except ApiError as e:
-            if e.status == 400 and "response_format" in payload:
-                payload.pop("response_format")
-                log("   ↪ إعادة بدون response_format")
+            if e.status == 400 and ("response_format" in payload or "max_tokens" in payload):
+                dropped = "response_format" if "response_format" in payload else "max_tokens"
+                payload.pop(dropped)
+                log(f"   ↪ إعادة بدون {dropped}")
                 continue
             if e.status in (0, 402, 408, 425, 429) or e.status >= 500:
                 wait = min(e.retry_after or (POLL_GAP if e.status in (402, 429) else 10 * attempt), 120)
@@ -223,14 +224,30 @@ def call_pollinations(messages, want_json):
     raise ApiError(503, "Pollinations: نفدت المحاولات")
 
 
+_gemini_disabled = False
+
+
 def chat(messages, want_json=True):
-    if GEMINI_KEY:
+    global _gemini_disabled
+    if GEMINI_KEY and not _gemini_disabled:
         try:
             out, model = call_gemini(messages, want_json)
             return out, f"gemini:{model}"
         except ApiError as e:
-            log(f"⚠️ فشل Gemini ({e}). أنتقل إلى Pollinations المجاني…")
+            _gemini_disabled = True
+            log(f"⚠️ فشل Gemini ({e}). سأكمل عبر Pollinations المجاني…")
     return call_pollinations(messages, want_json), f"pollinations:{POLL_MODEL}"
+
+
+def gemini_chat(messages, want_json=True):
+    """Gemini فقط (للتوليد دفعة واحدة)؛ عند الفشل نتحول للتوليد على أجزاء."""
+    global _gemini_disabled
+    try:
+        out, model = call_gemini(messages, want_json)
+        return out, f"gemini:{model}"
+    except ApiError:
+        _gemini_disabled = True
+        raise
 
 
 # ───────────────────────────── التحقق من المقال ─────────────────────────────
@@ -300,7 +317,7 @@ def validate_article(d, lang):
         errs.append("النقاط أقل من 3")
     if len(secs) < 3:
         errs.append("الأقسام أقل من 3")
-    if words < 350:
+    if words < 300:
         errs.append(f"المقال قصير ({words} كلمة)")
     return out, errs
 
@@ -383,12 +400,13 @@ Return JSON only:
     return [{"role": "system", "content": system}, {"role": "user", "content": user}]
 
 
-def generate_pair(cat, titles):
+def generate_single(cat, titles):
+    """المقال كاملاً في طلب واحد (Gemini) — أسرع وأكثر تماسكاً."""
     ar = None
     provider = ""
     for attempt in range(1, 4):
         log(f"📝 كتابة المقال العربي (محاولة {attempt}/3) — المجال: {cat[0]}")
-        raw, provider = chat(prompt_ar(cat, titles), True)
+        raw, provider = gemini_chat(prompt_ar(cat, titles), True)
         try:
             data = extract_json(raw)
             art, errs = validate_article(data, "ar")
@@ -401,14 +419,14 @@ def generate_pair(cat, titles):
             ar = art
             break
         except Exception as e:
-            log(f"   ⚠️ رد غير صالح: {e}")
+            log(f"   ⚠️ رد غير صالح: {e} (طول الرد {len(raw)} حرفاً)")
     if not ar:
         raise RuntimeError("تعذّر الحصول على مقال عربي صالح بعد 3 محاولات")
 
     en = None
     for attempt in range(1, 4):
         log(f"🌍 كتابة النسخة الإنجليزية (محاولة {attempt}/3)")
-        raw, _ = chat(prompt_en(ar), True)
+        raw, _ = gemini_chat(prompt_en(ar), True)
         try:
             art, errs = validate_article(extract_json(raw), "en")
             if errs:
@@ -418,10 +436,255 @@ def generate_pair(cat, titles):
             en = art
             break
         except Exception as e:
-            log(f"   ⚠️ رد غير صالح: {e}")
+            log(f"   ⚠️ رد غير صالح: {e} (طول الرد {len(raw)} حرفاً)")
     if not en:
         raise RuntimeError("تعذّر الحصول على نسخة إنجليزية صالحة بعد 3 محاولات")
     return ar, en, provider
+
+
+
+# ─────────── التوليد على أجزاء (للخدمة المجانية التي تقطع الردود الطويلة) ───────────
+SYSTEM_AR = "أنت كاتب تقني محترف ومحرر علمي دقيق لموقع «نيورال تك» العربي المتخصص في الذكاء الاصطناعي والبرمجة. تكتب بعربية فصحى سلسة وواضحة."
+SYSTEM_EN = "You are a senior technical writer for NeuralTech AI. You write clear, accurate, natural English."
+
+
+def prompt_outline_ar(cat, titles, n):
+    avoid = "\n".join(f"- {t}" for t in titles[-60:]) or "- (لا يوجد)"
+    user = f"""نخطط لمقال تقني أصيل في مجال: «{cat[0]}» ({cat[1]}).
+اختر موضوعاً محدداً وعملياً يهم المطورين والمتعلمين العرب، ويختلف بوضوح عن هذه المقالات المنشورة سابقاً:
+{avoid}
+
+أعد مخطط المقال فقط (لا تكتب المقال نفسه) بصيغة JSON مختصرة:
+{{
+  "slug": "english_words_with_underscores (3-6 words)",
+  "tag": "وسم من كلمة أو كلمتين",
+  "title": "عنوان جذاب ودقيق",
+  "description": "وصف من جملة واحدة (أقل من 180 حرفاً)",
+  "takeaways": ["4 نقاط، كل نقطة أقل من 15 كلمة"],
+  "sections": ["{n} عناوين أقسام مرتبة منطقياً"]
+}}
+لا تخترع إحصاءات أو أخباراً بتواريخ محددة، ولا مبالغات تسويقية. أعد JSON فقط."""
+    return [{"role": "system", "content": SYSTEM_AR}, {"role": "user", "content": user}]
+
+
+def prompt_section_ar(o, heading, i):
+    order = "، ".join(f"«{h}»" for h in o["sections"])
+    last = i == len(o["sections"]) - 1
+    user = f"""نكتب مقالاً بعنوان «{o['title']}» ({o['description']}).
+أقسام المقال بالترتيب: {order}.
+
+اكتب الآن القسم رقم {i + 1} فقط: «{heading}».
+- فقرتان أو ثلاث، بين 130 و200 كلمة إجمالاً.
+- نص عادي فقط: بدون عنوان، بدون Markdown، بدون قوائم. افصل بين الفقرات بسطر فارغ.
+- الدقة أولاً: لا إحصاءات مخترعة ولا أسماء دراسات أو أخبار بتواريخ. اكتب المصطلح الإنجليزي بين قوسين عند أول ذكر.
+- {'هذا القسم الأخير، فاختمه بخلاصة عملية قصيرة.' if last else 'لا تكتب خاتمة للمقال، ولا تتناول موضوعات الأقسام الأخرى.'}"""
+    return [{"role": "system", "content": SYSTEM_AR}, {"role": "user", "content": user}]
+
+
+def prompt_code_ar(o):
+    user = f"""اكتب مثال كود بايثون قصيراً (15 إلى 35 سطراً) يوضح فكرة مقال «{o['title']}».
+- يعمل بالمكتبة القياسية فقط ويمكن تشغيله مباشرة، مع تعليقات عربية قصيرة.
+أعد الكود داخل كتلة ```python ثم سطراً واحداً بعدها يبدأ بـ «الشرح:» من جملة أو جملتين."""
+    return [{"role": "system", "content": SYSTEM_AR}, {"role": "user", "content": user}]
+
+
+def prompt_outline_en(ar):
+    src = json.dumps({"tag": ar["tag"], "title": ar["title"], "description": ar["description"],
+                      "takeaways": ar["takeaways"], "sections": [x["heading"] for x in ar["sections"]]}, ensure_ascii=False)
+    user = f"""Translate this Arabic article outline into natural English for the English edition of NeuralTech AI. Keep the same number and order of items.
+{src}
+Return JSON only: {{"tag": "...", "title": "...", "description": "...", "takeaways": ["..."], "sections": ["..."]}}"""
+    return [{"role": "system", "content": SYSTEM_EN}, {"role": "user", "content": user}]
+
+
+def prompt_section_en(title_en, heading_en, paras_ar):
+    body = "\n\n".join(paras_ar)
+    user = f"""Translate this section of the article "{title_en}" into natural, clear English. Adapt rather than translate word-for-word, keep every fact and add nothing.
+Section: "{heading_en}"
+
+{body}
+
+Return plain text only: no heading, no Markdown, paragraphs separated by a blank line."""
+    return [{"role": "system", "content": SYSTEM_EN}, {"role": "user", "content": user}]
+
+
+def prompt_code_en(code):
+    user = f"""Translate only the comments and printed strings in this Python code to English. Do not change the logic.
+```python
+{code}
+```
+Return the code in a ```python block, then one line starting with "Explanation:" (one or two sentences)."""
+    return [{"role": "system", "content": SYSTEM_EN}, {"role": "user", "content": user}]
+
+
+def trim_to_sentence(t):
+    t = str(t or "").rstrip()
+    if not t or t[-1] in ".!?؟…»\")":
+        return t
+    ends = [m.end() for m in re.finditer(r"[.!?؟…]", t)]
+    return t[:ends[-1]] if ends and ends[-1] > len(t) * 0.5 else t
+
+
+def to_paragraphs(raw, heading=""):
+    t = re.sub(r"^\s*```\w*\s*|\s*```\s*$", "", str(raw or "").strip())
+    lines = []
+    for line in t.splitlines():
+        x = line.strip()
+        if re.match(r"^#{1,6}\s", x):
+            continue
+        if heading and as_text(x.strip("*_ ").rstrip(":：")) == as_text(heading):
+            continue
+        lines.append(re.sub(r"^[-*•]\s+", "", x))
+    t = trim_to_sentence("\n".join(lines).strip())
+    paras = [as_text(p) for p in re.split(r"\n\s*\n", t) if as_text(p)]
+    if len(paras) == 1:
+        paras = [as_text(p) for p in t.split("\n") if as_text(p)] or paras
+    return paras[:5]
+
+
+def parse_code(raw):
+    s = str(raw or "")
+    m = re.search(r"```(?:python|py)?[^\n]*\n(.*?)```", s, re.S)
+    code, rest = (m.group(1), s[m.end():]) if m else ("", "")
+    expl = ""
+    mm = re.search(r"(?:الشرح|Explanation)\s*[:：]\s*(.+)", rest, re.S)
+    if mm:
+        expl = trim_to_sentence(as_text(mm.group(1)))[:400]
+    code = code.strip("\n")
+    try:
+        ast.parse(code)
+    except SyntaxError:
+        code = ""
+    return code, expl
+
+
+def check_outline(d, lang, n_min=3):
+    if not isinstance(d, dict):
+        raise ValueError("الرد ليس كائن JSON")
+    secs = []
+    for x in d.get("sections") or []:
+        h = x if isinstance(x, str) else (x.get("heading") if isinstance(x, dict) else "")
+        if as_text(h):
+            secs.append(as_text(h)[:140])
+    o = {"slug": as_text(d.get("slug")), "title": as_text(d.get("title"))[:160],
+         "description": as_text(d.get("description"))[:260], "tag": as_text(d.get("tag"))[:40],
+         "takeaways": [as_text(t) for t in (d.get("takeaways") or []) if as_text(t)][:6], "sections": secs[:6]}
+    errs = []
+    if len(o["title"]) < 12:
+        errs.append("العنوان قصير")
+    if lang == "ar" and not AR_RE.search(o["title"]):
+        errs.append("العنوان ليس عربياً")
+    if lang == "en" and AR_RE.search(o["title"] + o["description"] + " ".join(secs)):
+        errs.append("المخطط الإنجليزي يحتوي نصاً عربياً")
+    if len(o["description"]) < 30:
+        errs.append("الوصف قصير")
+    if len(o["takeaways"]) < 3:
+        errs.append("النقاط أقل من 3")
+    if len(secs) < n_min:
+        errs.append("الأقسام أقل من 3")
+    if errs:
+        raise ValueError("، ".join(errs))
+    return o
+
+
+def generate_chunked(cat, titles):
+    log("🧩 توليد المقال على أجزاء قصيرة (الخدمة المجانية تقطع الردود الطويلة)")
+    provider, o = "", None
+    for attempt in range(1, 4):
+        log(f"📝 مخطط المقال العربي (محاولة {attempt}/3) — المجال: {cat[0]}")
+        raw, provider = chat(prompt_outline_ar(cat, titles, 4), True)
+        try:
+            cand = check_outline(extract_json(raw), "ar")
+            dup = similar_title(cand["title"], titles)
+            if dup:
+                raise ValueError(f"العنوان قريب جداً من مقال سابق: {dup}")
+            o = cand
+            break
+        except Exception as e:
+            log(f"   ⚠️ رد غير صالح: {e} (طول الرد {len(raw)} حرفاً)")
+    if not o:
+        raise RuntimeError("تعذّر الحصول على مخطط عربي صالح بعد 3 محاولات")
+    log(f"   ↳ «{o['title']}»")
+
+    secs = []
+    for i, h in enumerate(o["sections"]):
+        for attempt in (1, 2):
+            log(f"✍️ القسم {i + 1}/{len(o['sections'])}: {h}")
+            raw, _ = chat(prompt_section_ar(o, h, i), False)
+            paras = to_paragraphs(raw, h)
+            n = len(" ".join(paras).split())
+            if n >= 50 and AR_RE.search(" ".join(paras)):
+                secs.append({"heading": h, "paragraphs": paras})
+                break
+            log(f"   ⚠️ القسم قصير أو غير عربي ({n} كلمة)")
+    if len(secs) < 3:
+        raise RuntimeError("حصلت على أقل من 3 أقسام صالحة")
+
+    code, expl = "", ""
+    log("🐍 مثال الكود")
+    try:
+        code, expl = parse_code(chat(prompt_code_ar(o), False)[0])
+        if not code:
+            log("   ⚠️ لم يصل كود صالح — سيُنشر المقال بدون كود")
+    except ApiError as e:
+        log(f"   ⚠️ تعذّر توليد الكود ({e}) — سيُنشر المقال بدون كود")
+    ar, errs = validate_article(dict(o, sections=secs, code=code, code_explanation=expl), "ar")
+    if errs:
+        raise RuntimeError("المقال العربي غير مكتمل: " + "، ".join(errs))
+    ar["slug_hint"] = o["slug"]
+
+    eo = None
+    for attempt in range(1, 4):
+        log(f"🌍 مخطط النسخة الإنجليزية (محاولة {attempt}/3)")
+        raw, _ = chat(prompt_outline_en(ar), True)
+        try:
+            cand = check_outline(extract_json(raw), "en")
+            if len(cand["sections"]) < len(ar["sections"]):
+                raise ValueError("عدد الأقسام لا يطابق النسخة العربية")
+            eo = cand
+            break
+        except Exception as e:
+            log(f"   ⚠️ رد غير صالح: {e} (طول الرد {len(raw)} حرفاً)")
+    if not eo:
+        raise RuntimeError("تعذّر الحصول على مخطط إنجليزي صالح بعد 3 محاولات")
+
+    en_secs = []
+    for i, sec in enumerate(ar["sections"]):
+        h = eo["sections"][i]
+        for attempt in (1, 2):
+            log(f"🌍 ترجمة القسم {i + 1}/{len(ar['sections'])}")
+            raw, _ = chat(prompt_section_en(eo["title"], h, sec["paragraphs"]), False)
+            paras = to_paragraphs(raw, h)
+            n = len(" ".join(paras).split())
+            if n >= 50 and not AR_RE.search(" ".join(paras)):
+                en_secs.append({"heading": h, "paragraphs": paras})
+                break
+            log(f"   ⚠️ الترجمة قصيرة أو فيها عربية ({n} كلمة)")
+    if len(en_secs) < 3:
+        raise RuntimeError("حصلت على أقل من 3 أقسام إنجليزية صالحة")
+
+    en_code, en_expl = ar["code"], ""
+    if ar["code"]:
+        log("🐍 ترجمة تعليقات الكود")
+        try:
+            c, x = parse_code(chat(prompt_code_en(ar["code"]), False)[0])
+            if c:
+                en_code, en_expl = c, x
+        except ApiError as e:
+            log(f"   ⚠️ تعذّرت ترجمة الكود ({e}) — سأستعمل الكود العربي")
+    en, errs = validate_article(dict(eo, sections=en_secs, code=en_code, code_explanation=en_expl), "en")
+    if errs:
+        raise RuntimeError("النسخة الإنجليزية غير مكتملة: " + ", ".join(errs))
+    return ar, en, provider
+
+
+def generate_pair(cat, titles):
+    if GEMINI_KEY:
+        try:
+            return generate_single(cat, titles)
+        except Exception as e:
+            log(f"⚠️ لم ينجح التوليد دفعة واحدة ({e}). أنتقل للتوليد على أجزاء…")
+    return generate_chunked(cat, titles)
 
 
 # ───────────────────────────── توليد الصفحات ─────────────────────────────
