@@ -7,7 +7,7 @@
  */
 (function () {
   'use strict';
-  var GOATCOUNTER = '';   // مثال: 'neuraltech'
+  var GOATCOUNTER = 'you';   // مثال: 'neuraltech'
 
   if (window.__NTS_LOADED__) return;
   window.__NTS_LOADED__ = true;
