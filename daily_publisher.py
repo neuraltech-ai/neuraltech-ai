@@ -58,8 +58,10 @@ GEMINI_KEY = GEMINI_KEYS[0] if GEMINI_KEYS else ""
 GEMINI_URL = os.environ.get("NT_GEMINI_URL", "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions")
 GEMINI_MODELS = list(dict.fromkeys(m for m in [
     os.environ.get("GEMINI_MODEL", "").strip(),
-    "gemini-3.8-flash", "gemini-3.5-flash", "gemini-flash-latest", "gemini-2.5-flash",
+    "gemini-3.8-flash", "gemini-flash-latest", "gemini-3.5-flash", "gemini-2.5-flash",
 ] if m))
+GEMINI_TIMEOUT = float(os.environ.get("NT_GEMINI_TIMEOUT", "150"))   # ثوانٍ لكل طلب
+GEMINI_BUDGET = float(os.environ.get("NT_GEMINI_BUDGET", "480"))     # بعدها ننتقل للخدمة المجانية
 POLL_URL = os.environ.get("NT_POLL_URL", "https://text.pollinations.ai/openai")
 POLL_KEY = os.environ.get("POLLINATIONS_API_KEY", "").strip()
 POLL_MODEL = os.environ.get("POLLINATIONS_MODEL", "openai")
@@ -112,7 +114,10 @@ def today_str():
 # ───────────────────────────── الاتصال بالنماذج ─────────────────────────────
 class ApiError(Exception):
     def __init__(self, status, msg, retry_after=None):
-        super().__init__(f"HTTP {status}: {str(msg)[:300]}")
+        m = str(msg)
+        found = re.search(r'"message"\s*:\s*"([^"]{1,300})"', m)
+        text = found.group(1) if found else re.sub(r"\s+", " ", m)[:300]
+        super().__init__(f"HTTP {status}: {text}")
         self.status = status
         self.retry_after = retry_after
 
@@ -162,8 +167,11 @@ def _model_missing(e):
     return e.status == 404 or "not found" in t or "is not supported" in t or "unknown model" in t
 
 
-_missing_models = set()
+_missing_models = set()   # نماذج غير موجودة
+_busy_models = set()      # نماذج مزدحمة (503) أو بطيئة في هذا التشغيل
 _bad_keys = set()
+_good_model = None        # أول نموذج نجح؛ نبدأ به في الطلبات التالية
+_gemini_started = None
 
 
 def _key_problem(e):
@@ -171,18 +179,29 @@ def _key_problem(e):
     return e.status in (401, 403) or (e.status == 400 and ("api key" in t or "api_key" in t))
 
 
+def _gemini_time_left():
+    return GEMINI_BUDGET - (time.time() - _gemini_started)
+
+
 def _call_gemini_key(key, messages, want_json, more_keys):
+    global _good_model
     headers = {"Authorization": f"Bearer {key}"}
+    models = [m for m in GEMINI_MODELS if m not in _missing_models and m not in _busy_models]
+    if _good_model in models:
+        models.remove(_good_model)
+        models.insert(0, _good_model)
     last = None
-    for model in [m for m in GEMINI_MODELS if m not in _missing_models]:
+    for model in models:
         payload = {"model": model, "messages": messages, "temperature": 0.7, "reasoning_effort": "low"}
         if want_json:
             payload["response_format"] = {"type": "json_object"}
-        attempt = 0
-        while attempt < 4:
-            attempt += 1
+        transient = 0
+        while True:
+            if _gemini_time_left() <= 0:
+                raise ApiError(504, "انتهت المهلة المخصصة لـ Gemini في هذا التشغيل")
             try:
-                out = content_from(post_json(GEMINI_URL, payload, headers))
+                out = content_from(post_json(GEMINI_URL, payload, headers, timeout=min(GEMINI_TIMEOUT, max(30, _gemini_time_left()))))
+                _good_model = model
                 log(f"   ✓ Gemini ({model})")
                 return out, model
             except ApiError as e:
@@ -197,20 +216,36 @@ def _call_gemini_key(key, messages, want_json, more_keys):
                     dropped = "reasoning_effort" if "reasoning_effort" in payload else "response_format"
                     payload.pop(dropped)
                     log(f"   ↪ إعادة بدون {dropped}")
-                    attempt -= 1
                     continue
-                if e.status == 429 and more_keys:
-                    raise  # حصة هذا المفتاح نفدت: ننتقل للمفتاح التالي فوراً
-                if e.status in (0, 408, 429) or e.status >= 500:
-                    wait = min(e.retry_after or 15 * attempt, 90)
-                    log(f"   ⚠️ Gemini: {e} — إعادة بعد {wait:.0f}ث ({attempt}/4)")
+                if e.status == 429:
+                    if more_keys:
+                        raise  # حصة هذا المفتاح نفدت: ننتقل للمفتاح التالي فوراً
+                    transient += 1
+                    if transient > 2:
+                        break
+                    wait = min(e.retry_after or 20 * transient, 60)
+                    log(f"   ⚠️ Gemini ({model}): الحصة مؤقتاً — إعادة بعد {wait:.0f}ث")
                     time.sleep(wait)
                     continue
+                if e.status in (0, 408) or e.status >= 500:
+                    transient += 1
+                    if transient >= 2 or e.status == 0:
+                        # مزدحم أو بطيء: لا ننتظره، ننتقل فوراً للنموذج التالي
+                        why = "لم يرد في الوقت المحدد" if e.status == 0 else f"مزدحم (HTTP {e.status})"
+                        log(f"   ↪ النموذج {model} {why}، أجرّب نموذجاً آخر")
+                        _busy_models.add(model)
+                        break
+                    log(f"   ⚠️ Gemini ({model}): HTTP {e.status} — إعادة بعد 8ث")
+                    time.sleep(8)
+                    continue
                 raise
-    raise last or ApiError(503, "لا يوجد نموذج Gemini متاح")
+    raise last or ApiError(503, "لا يوجد نموذج Gemini متاح الآن")
 
 
 def call_gemini(messages, want_json):
+    global _gemini_started
+    if _gemini_started is None:
+        _gemini_started = time.time()
     keys = [k for k in GEMINI_KEYS if k not in _bad_keys]
     last = None
     for i, key in enumerate(keys):
