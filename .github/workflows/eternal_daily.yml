@@ -10,6 +10,10 @@ on:
         description: 'انشر مقالاً جديداً حتى لو نُشر مقال اليوم'
         type: boolean
         default: false
+      refresh_images:
+        description: 'ولّد صوراً مناسبة لكل المقالات القديمة (بدون نشر مقال جديد)'
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -21,7 +25,7 @@ concurrency:
 jobs:
   publish:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v5
 
@@ -29,7 +33,7 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Write today's article (AR + EN)
+      - name: Write today's article (AR + EN) / refresh images
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           GEMINI_API_KEY_2: ${{ secrets.GEMINI2 }}
@@ -37,6 +41,7 @@ jobs:
           GEMINI_MODEL: ${{ vars.GEMINI_MODEL }}
           POLLINATIONS_API_KEY: ${{ secrets.POLLINATIONS_API_KEY }}
           NT_FORCE: ${{ github.event_name == 'workflow_dispatch' && inputs.force && '1' || '' }}
+          NT_REFRESH: ${{ github.event_name == 'workflow_dispatch' && inputs.refresh_images && '1' || '' }}
         run: python3 daily_publisher.py
 
       - name: Commit & push
@@ -45,6 +50,6 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A
           if git diff --staged --quiet; then echo "لا تغييرات للنشر"; exit 0; fi
-          git commit -m "📰 Daily article $(date -u +%F)"
+          git commit -m "📰 NeuralTech update $(date -u +%F)"
           git pull --rebase origin main
           git push origin main

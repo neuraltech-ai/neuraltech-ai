@@ -341,5 +341,6 @@ function toggleThemeMode(){document.body.classList.toggle('light-mode');var l=do
 function copyArticleCode(btn){var c=btn.parentElement.querySelector('code');if(!c||!navigator.clipboard)return;navigator.clipboard.writeText(c.innerText).then(function(){var o=btn.textContent;btn.textContent='Copied ✓';setTimeout(function(){btn.textContent=o;},1500);});}
 </script>
 <script src="nt-chat.js" defer></script>
+<script src="nt-stats.js" defer></script>
 </body>
 </html>

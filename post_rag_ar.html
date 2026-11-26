@@ -245,12 +245,7 @@
 </header>
 
 <div class="telemetry-bar">
-    <div class="telemetry-pill">
-        <span class="live-dot"></span>
-        <span>يتصفح الآن: <b id="nt-active-users">8</b></span>
-        <span>•</span>
-        <span>👁️ إجمالي القراءات: <b id="nt-total-views">2,640</b></span>
-    </div>
+    <div class="telemetry-pill" id="nt-stats" style="display:none"></div>
     <a href="https://payhip.com/Youstor" target="_blank" class="btn-store">🛍️ المتجر الرقمي</a>
 </div>
 
@@ -428,20 +423,6 @@ function copyArticleCode(btn) {
   });
 }
 
-(function() {
-  const key = (window.location.pathname.replace(/[^a-zA-Z0-9]/g, '_') || 'home');
-  let h = 0;
-  for (let i = 0; i < key.length; i++) h = ((h << 5) - h) + key.charCodeAt(i);
-  const baseViews = 2420 + (Math.abs(h) % 980);
-  const localCount = parseInt(localStorage.getItem('nt_views_' + key) || '0', 10) + 1;
-  localStorage.setItem('nt_views_' + key, localCount);
-  const total = baseViews + localCount;
-  const active = 7 + (new Date().getMinutes() % 9);
-  const vEl = document.getElementById('nt-total-views');
-  const aEl = document.getElementById('nt-active-users');
-  if (vEl) vEl.textContent = total.toLocaleString();
-  if (aEl) aEl.textContent = active;
-})();
 
 let currentLangFilter = 'ar';
 function filterCardsByLang(lang, btn) {
@@ -464,5 +445,6 @@ function applyCardFilters() {
 </script>
 
 <script src="nt-chat.js" defer></script>
+<script src="nt-stats.js" defer></script>
 </body>
 </html>

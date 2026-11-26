@@ -31,6 +31,7 @@ import re
 import sys
 import time
 import urllib.error
+import urllib.parse
 import urllib.request
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
@@ -38,6 +39,8 @@ DB_PATH = os.path.join(ROOT, "data", "articles_db.json")
 INDEX_PATH = os.path.join(ROOT, "index.html")
 COVERS_DIR = os.path.join(ROOT, "assets", "covers")
 CHAT_TAG = '<script src="nt-chat.js" defer></script>'
+STATS_TAG = '<script src="nt-stats.js" defer></script>'
+STATS_BOX = '<div class="telemetry-pill" id="nt-stats" style="display:none"></div>'
 STORE_URL = "https://payhip.com/Youstor"
 SITE_URL = os.environ.get("SITE_URL", "https://neuraltech-ai.github.io/neuraltech-ai/").rstrip("/") + "/"
 TZ_NAME = os.environ.get("NT_TZ", "Africa/Casablanca")
@@ -66,6 +69,12 @@ POLL_URL = os.environ.get("NT_POLL_URL", "https://text.pollinations.ai/openai")
 POLL_KEY = os.environ.get("POLLINATIONS_API_KEY", "").strip()
 POLL_MODEL = os.environ.get("POLLINATIONS_MODEL", "openai")
 POLL_GAP = float(os.environ.get("NT_POLL_GAP", "32"))  # الحد المجاني: طلب واحد كل ~30 ثانية
+REFRESH_ALL = os.environ.get("NT_REFRESH", "").strip().lower() in ("1", "true", "yes")
+
+# صور المقالات: تُولَّد بالذكاء الاصطناعي من موضوع المقال (Pollinations، مجاني)
+IMG_URL = os.environ.get("NT_IMG_URL", "https://image.pollinations.ai/prompt/")
+IMG_MODEL = os.environ.get("NT_IMG_MODEL", "flux")
+IMG_GAP = float(os.environ.get("NT_IMG_GAP", "4" if POLL_KEY else "46"))  # المجاني: صورة كل ~45 ثانية
 
 # (الاسم العربي، الاسم الإنجليزي، رمز الغلاف) — يتناوب البوت عليها يومياً
 CATEGORIES = [
@@ -349,6 +358,7 @@ def validate_article(d, lang):
         "tag": as_text(d.get("tag"))[:40],
         "takeaways": [as_text(t) for t in (d.get("takeaways") or []) if as_text(t)][:6],
         "code_explanation": as_text(d.get("code_explanation"))[:700],
+        "image_prompt": as_text(d.get("image_prompt"))[:400],
     }
     secs = []
     for s in d.get("sections") or []:
@@ -453,7 +463,8 @@ def prompt_ar(cat, titles):
   "takeaways": ["نقطة 1", "نقطة 2", "نقطة 3", "نقطة 4"],
   "sections": [{{"heading": "عنوان القسم", "paragraphs": ["فقرة", "فقرة"]}}],
   "code": "كود بايثون كامل",
-  "code_explanation": "جملتان تشرحان ما يفعله الكود"
+  "code_explanation": "جملتان تشرحان ما يفعله الكود",
+  "image_prompt": "English only: one sentence describing a concrete visual scene that represents THIS article's topic (objects, setting, mood), no text in the image"
 }}"""
     return [{"role": "system", "content": system}, {"role": "user", "content": user}]
 
@@ -534,7 +545,8 @@ def prompt_outline_ar(cat, titles, n):
   "title": "عنوان جذاب ودقيق",
   "description": "وصف من جملة واحدة (أقل من 180 حرفاً)",
   "takeaways": ["4 نقاط، كل نقطة أقل من 15 كلمة"],
-  "sections": ["{n} عناوين أقسام مرتبة منطقياً"]
+  "sections": ["{n} عناوين أقسام مرتبة منطقياً"],
+  "image_prompt": "English only: one sentence describing a concrete visual scene that represents THIS article's topic, no text in the image"
 }}
 لا تخترع إحصاءات أو أخباراً بتواريخ محددة، ولا مبالغات تسويقية. أعد JSON فقط."""
     return [{"role": "system", "content": SYSTEM_AR}, {"role": "user", "content": user}]
@@ -641,7 +653,8 @@ def check_outline(d, lang, n_min=3):
             secs.append(as_text(h)[:140])
     o = {"slug": as_text(d.get("slug")), "title": as_text(d.get("title"))[:160],
          "description": as_text(d.get("description"))[:260], "tag": as_text(d.get("tag"))[:40],
-         "takeaways": [as_text(t) for t in (d.get("takeaways") or []) if as_text(t)][:6], "sections": secs[:6]}
+         "takeaways": [as_text(t) for t in (d.get("takeaways") or []) if as_text(t)][:6], "sections": secs[:6],
+         "image_prompt": as_text(d.get("image_prompt"))[:400]}
     errs = []
     if len(o["title"]) < 12:
         errs.append("العنوان قصير")
@@ -814,7 +827,8 @@ def minutes_label(n, ar):
     return f"وقت القراءة: {n} {'دقائق' if 3 <= n <= 10 else 'دقيقة'}"
 
 
-def render_post(a, lang, slug, date, style):
+def render_post(a, lang, slug, date, style, cover=None):
+    cover = cover or f"assets/covers/{slug}.svg"
     ar = lang == "ar"
     other = f"post_{slug}_{'en' if ar else 'ar'}.html"
     fn = f"post_{slug}_{lang}.html"
@@ -882,13 +896,14 @@ def render_post(a, lang, slug, date, style):
 
 <div class="post-container">
     <article class="post-card">
-        <img src="assets/covers/{slug}.svg" alt="{t}" class="post-hero" width="1200" height="630">
+        <img src="{cover}" alt="{t}" class="post-hero" width="1280" height="720">
         <div class="card-meta-top">
             <span class="tag-pill">{html.escape(a['tag'])}</span>
             <span class="audit-badge">{L['badge']}</span>
         </div>
         <h1 class="post-h1">{t}</h1>
         <div class="post-meta">📅 <time datetime="{date}">{date}</time> • ⏱️ {minutes_label(a['read_minutes'], ar)}</div>
+        {STATS_BOX}
         <div class="takeaways-box">
             <h3>{L['tk']}</h3>
             <ul>
@@ -908,6 +923,7 @@ def render_post(a, lang, slug, date, style):
 
 {SITE_JS}
 {CHAT_TAG}
+{STATS_TAG}
 </body>
 </html>
 """
@@ -951,7 +967,7 @@ def card_html(rec, lang):
     attrs = f'data-lang="{lang}"' + ("" if ar else ' dir="ltr" style="display: none;"')
     t = html.escape(a["title"])
     return f"""        <div class="article-card" {attrs}>
-            <a href="{href}"><img src="assets/covers/{slug}.svg" alt="{t}" class="card-thumb" loading="lazy"></a>
+            <a href="{href}"><img src="{rec.get('cover') or f'assets/covers/{slug}.svg'}" alt="{t}" class="card-thumb" loading="lazy"></a>
             <div class="card-body">
                 <div class="card-meta-top">
                     <span class="tag-pill">{html.escape(a['tag'])}</span>
@@ -1012,17 +1028,28 @@ def remove_old_widget(s):
     return s
 
 
+FAKE_COUNTER_RE = re.compile(r"\(function\(\)\s*\{\s*const key = \(window\.location\.pathname.*?\}\)\(\);[ \t]*\n?", re.S)
+OLD_PILL_RE = re.compile(r'<div class="telemetry-pill">.*?</div>', re.S)
+
+
 def migrate_file(path):
     s = read(path)
     orig = s
     s = remove_old_widget(s)
+    m = FAKE_COUNTER_RE.search(s)
+    if m and "baseViews" in m.group(0):
+        s = s[:m.start()] + s[m.end():]           # أرقام "يتصفح الآن" و"إجمالي الزيارات" المولّدة بمعادلة
+    m = OLD_PILL_RE.search(s)
+    if m and "nt-active-users" in m.group(0):
+        s = s[:m.start()] + STATS_BOX + s[m.end():]
     m = OLD_ENGINE_RE.search(s)
     if m and ("__ntGetSmartReply" in m.group(0) or "pollinations" in m.group(0)):
         s = s[:m.start()] + s[m.end():]
-    if "nt-chat.js" not in s:
-        k = s.lower().rfind("</body>")
-        if k != -1:
-            s = s[:k] + CHAT_TAG + "\n" + s[k:]
+    for tag, name in ((CHAT_TAG, "nt-chat.js"), (STATS_TAG, "nt-stats.js")):
+        if name not in s:
+            k = s.lower().rfind("</body>")
+            if k != -1:
+                s = s[:k] + tag + "\n" + s[k:]
     if s != orig:
         write(path, s)
         return True
@@ -1031,6 +1058,161 @@ def migrate_file(path):
 
 def migrate_all():
     return sum(1 for p in sorted(glob.glob(os.path.join(ROOT, "*.html"))) if migrate_file(p))
+
+
+# ───────────────────────────── صور المقالات ─────────────────────────────
+_last_img = 0.0
+
+
+def image_prompt_for(title_en, desc_en, scene=""):
+    scene = as_text(scene)
+    if not scene or AR_RE.search(scene):
+        scene = f"A concept scene illustrating the technology topic: {title_en}. {desc_en}"
+    return (scene.rstrip(". ") + ". Editorial digital illustration for a tech article, cinematic lighting, rich detail, "
+            "modern futuristic style, deep blue and violet palette, wide 16:9 composition, no text, no letters, no logos")[:900]
+
+
+def fetch_image(prompt, seed):
+    global _last_img
+    url = (f"{IMG_URL}{urllib.parse.quote(prompt)}?width=1280&height=720&model={IMG_MODEL}"
+           f"&nologo=true&seed={seed}")
+    headers = {"User-Agent": "NeuralTech-Publisher/2.0"}
+    if POLL_KEY:
+        headers["Authorization"] = f"Bearer {POLL_KEY}"
+    last = None
+    for attempt in range(1, 5):
+        gap = IMG_GAP - (time.time() - _last_img)
+        if _last_img and gap > 0:
+            log(f"   ⏳ انتظار {gap:.0f}ث (حد الصور المجاني)")
+            time.sleep(gap)
+        _last_img = time.time()
+        try:
+            with urllib.request.urlopen(urllib.request.Request(url, headers=headers), timeout=180) as r:
+                ct, data = r.headers.get("Content-Type", ""), r.read()
+            if not ct.startswith("image/") or len(data) < 15000:
+                raise ApiError(502, f"الرد ليس صورة صالحة ({ct or '?'}، {len(data)} بايت)")
+            return data, ct
+        except urllib.error.HTTPError as e:
+            ra = e.headers.get("Retry-After") if e.headers else None
+            try:
+                ra = float(ra) if ra else None
+            except ValueError:
+                ra = None
+            last = ApiError(e.code, "image")
+            if e.code in (402, 408, 429) or e.code >= 500:
+                wait = min(ra or IMG_GAP, 120)
+                log(f"   ⚠️ الصور: HTTP {e.code} — إعادة بعد {wait:.0f}ث ({attempt}/4)")
+                time.sleep(wait)
+                _last_img = time.time() - IMG_GAP
+                continue
+            raise last
+        except ApiError as e:
+            last = e
+            log(f"   ⚠️ {e} ({attempt}/4)")
+            time.sleep(10)
+        except (urllib.error.URLError, TimeoutError, ConnectionError, OSError) as e:
+            last = ApiError(0, e)
+            log(f"   ⚠️ الصور: {e} ({attempt}/4)")
+            time.sleep(15 * attempt)
+    raise last or ApiError(503, "تعذّر توليد الصورة")
+
+
+def save_image(slug, prompt):
+    data, ct = fetch_image(prompt, int(hashlib.sha256(slug.encode()).hexdigest(), 16) % 1000000)
+    ext = ".png" if "png" in ct else (".webp" if "webp" in ct else ".jpg")
+    rel = f"assets/covers/{slug}{ext}"
+    os.makedirs(COVERS_DIR, exist_ok=True)
+    with open(os.path.join(ROOT, rel), "wb") as f:
+        f.write(data)
+    return rel
+
+
+def make_cover(slug, prompt, cat):
+    log("🖼️ توليد صورة تناسب موضوع المقال")
+    try:
+        rel = save_image(slug, prompt)
+        log(f"   ✓ {rel}")
+        return rel
+    except ApiError as e:
+        log(f"   ⚠️ تعذّرت الصورة ({e}) — سأضع غلافاً مؤقتاً، وسيحاول البوت توليد الصورة في التشغيل القادم")
+        write(os.path.join(COVERS_DIR, f"{slug}.svg"), cover_svg(slug, cat))
+        return f"assets/covers/{slug}.svg"
+
+
+CARD_RE = re.compile(r'<div class="article-card"[^>]*data-lang="(ar|en)"[^>]*>(.*?)<div class="card-footer">', re.S)
+
+
+def _strip_tags(x):
+    return as_text(html.unescape(re.sub(r"<[^>]+>", "", x or "")))
+
+
+def needs_cover(src):
+    return not src.startswith("assets/covers/") or src.endswith(".svg")
+
+
+def refresh_images(limit=None, budget=None):
+    """يولّد صورة مناسبة لكل مقال صورته عامة (Unsplash) أو غلاف مؤقت. آمن للتكرار."""
+    started = time.time()
+    db = load_db()
+    by_slug = {r["slug"]: r for r in db["articles"]}
+    cards = {}
+    for m in CARD_RE.finditer(read(INDEX_PATH)):
+        lang, block = m.group(1), m.group(2)
+        a = re.search(r'<a href="post_(.+?)_(?:ar|en)\.html"><img src="([^"]+)"', block)
+        t = re.search(r'<h2 class="card-title">(.*?)</h2>', block, re.S)
+        d = re.search(r'<p class="card-desc">(.*?)</p>', block, re.S)
+        if not a or not t:
+            continue
+        info = cards.setdefault(a.group(1), {"srcs": set(), "t": {}, "d": {}})
+        info["srcs"].add(a.group(2))
+        info["t"][lang] = _strip_tags(t.group(1))
+        info["d"][lang] = _strip_tags(d.group(1) if d else "")
+    todo = [b for b, i in cards.items() if any(needs_cover(x) for x in i["srcs"])]
+    if not todo:
+        log("🖼️ كل المقالات لها صور مناسبة.")
+        return 0
+    if limit:
+        todo = todo[:limit]
+    log(f"🖼️ توليد صور مناسبة لـ {len(todo)} مقال")
+    done = 0
+    for n, base in enumerate(todo, 1):
+        if budget and time.time() - started > budget:
+            log("   ⏸ انتهى الوقت المخصص للصور في هذا التشغيل؛ سيكمل البوت الباقي لاحقاً")
+            break
+        i, rec = cards[base], by_slug.get(base)
+        title = i["t"].get("en") or i["t"].get("ar")
+        prompt = (rec or {}).get("image_prompt") or image_prompt_for(title, i["d"].get("en") or i["d"].get("ar"))
+        log(f"   ({n}/{len(todo)}) {i['t'].get('ar') or title}")
+        try:
+            rel = save_image(base, prompt)
+        except ApiError as e:
+            log(f"   ⚠️ تعذّرت الصورة ({e}) — أبقيت الصورة الحالية")
+            continue
+        set_cover(base, rel)
+        if rec:
+            rec["cover"], rec["image_prompt"] = rel, prompt
+        done += 1
+        log(f"   ✓ {rel}")
+    if done:
+        save_db(db)
+        if db["articles"]:
+            update_index(db)
+    return done
+
+
+def set_cover(base, rel):
+    """يضع الصورة الجديدة في بطاقتي الصفحة الرئيسية وفي صفحتي المقال (عربي وإنجليزي)."""
+    idx = read(INDEX_PATH)
+    idx = re.sub(r'(<a href="post_' + re.escape(base) + r'_(?:ar|en)\.html"><img src=")[^"]+(")',
+                 lambda m: m.group(1) + rel + m.group(2), idx)
+    write(INDEX_PATH, idx)
+    for lang in ("ar", "en"):
+        pp = os.path.join(ROOT, f"post_{base}_{lang}.html")
+        if os.path.exists(pp):
+            ps = read(pp)
+            ps2 = re.sub(r'(<img\s+src=")[^"]+("[^>]*\bclass="post-hero")', lambda m: m.group(1) + rel + m.group(2), ps, count=1)
+            if ps2 != ps:
+                write(pp, ps2)
 
 
 # ───────────────────────────── قاعدة البيانات ─────────────────────────────
@@ -1052,7 +1234,12 @@ def save_db(db):
 def main():
     os.chdir(ROOT)
     if "--migrate" in sys.argv[1:]:
-        log(f"✅ تم تحديث نافذة الدردشة في {migrate_all()} صفحة")
+        log(f"✅ تم تحديث {migrate_all()} صفحة")
+        return 0
+    if REFRESH_ALL or "--refresh-images" in sys.argv[1:]:
+        migrate_all()
+        n = refresh_images(budget=35 * 60)
+        log(f"✅ حُدّثت صور {n} مقال")
         return 0
     if not os.path.exists(INDEX_PATH):
         log("❌ لم أجد index.html — شغّل السكربت من جذر المستودع")
@@ -1066,7 +1253,8 @@ def main():
         log(f"ℹ️ مقال اليوم ({today}) منشور مسبقاً — لا جديد.")
         n = migrate_all()
         if n:
-            log(f"🔁 حُدّثت نافذة الدردشة في {n} صفحة")
+            log(f"🔁 حُدّثت {n} صفحة")
+        refresh_images(limit=3, budget=5 * 60)   # تحسين صور المقالات القديمة تدريجياً
         return 0
 
     cat = CATEGORIES[len(db["articles"]) % len(CATEGORIES)]
@@ -1086,14 +1274,15 @@ def main():
             a["tag"] = cat[0] if a is ar else cat[1]
 
     style = site_style()
-    write(os.path.join(COVERS_DIR, f"{slug}.svg"), cover_svg(slug, cat))
-    write(os.path.join(ROOT, f"post_{slug}_ar.html"), render_post(ar, "ar", slug, today, style))
-    write(os.path.join(ROOT, f"post_{slug}_en.html"), render_post(en, "en", slug, today, style))
+    prompt = image_prompt_for(en["title"], en["description"], ar.get("image_prompt") or en.get("image_prompt"))
+    cover = make_cover(slug, prompt, cat)
+    write(os.path.join(ROOT, f"post_{slug}_ar.html"), render_post(ar, "ar", slug, today, style, cover))
+    write(os.path.join(ROOT, f"post_{slug}_en.html"), render_post(en, "en", slug, today, style, cover))
 
     db["articles"].append({
         "slug": slug, "date": today,
         "created": dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds"),
-        "category": cat[1], "provider": provider,
+        "category": cat[1], "provider": provider, "cover": cover, "image_prompt": prompt,
         "ar": {k: ar[k] for k in ("title", "description", "tag", "read_minutes")},
         "en": {k: en[k] for k in ("title", "description", "tag", "read_minutes")},
     })
@@ -1103,7 +1292,8 @@ def main():
     log(f"✅ نُشر: {ar['title']}")
     log(f"   ↳ post_{slug}_ar.html + post_{slug}_en.html ({ar['words']} / {en['words']} كلمة، عبر {provider})")
     if n:
-        log(f"🔁 حُدّثت نافذة الدردشة في {n} صفحة")
+        log(f"🔁 حُدّثت {n} صفحة")
+    refresh_images(limit=2, budget=4 * 60)   # تحسين صور المقالات القديمة تدريجياً
     return 0
 
 
