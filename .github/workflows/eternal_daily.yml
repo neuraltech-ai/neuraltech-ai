@@ -32,6 +32,8 @@ jobs:
       - name: Write today's article (AR + EN)
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GEMINI_API_KEY_2: ${{ secrets.GEMINI2 }}
+          GEMINI_API_KEY_3: ${{ secrets.GEMINI3 }}
           GEMINI_MODEL: ${{ vars.GEMINI_MODEL }}
           POLLINATIONS_API_KEY: ${{ secrets.POLLINATIONS_API_KEY }}
           NT_FORCE: ${{ github.event_name == 'workflow_dispatch' && inputs.force && '1' || '' }}

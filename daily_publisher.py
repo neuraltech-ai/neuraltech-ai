@@ -43,7 +43,18 @@ SITE_URL = os.environ.get("SITE_URL", "https://neuraltech-ai.github.io/neuraltec
 TZ_NAME = os.environ.get("NT_TZ", "Africa/Casablanca")
 FORCE = os.environ.get("NT_FORCE", "").strip().lower() in ("1", "true", "yes")
 
-GEMINI_KEY = os.environ.get("GEMINI_API_KEY", "").strip()
+# يقبل حتى 3 مفاتيح Gemini (أسرار GitHub: GEMINI_API_KEY و GEMINI2 و GEMINI3)؛ إذا نفدت حصة مفتاح ينتقل للتالي
+_KEY_SOURCES = {"GEMINI_API_KEY": "GEMINI_API_KEY", "GEMINI_API_KEY_2": "GEMINI2", "GEMINI_API_KEY_3": "GEMINI3"}
+KEY_NAMES = {}
+for _env, _name in _KEY_SOURCES.items():
+    _k = os.environ.get(_env, "").strip()
+    if _k and _k not in KEY_NAMES:
+        KEY_NAMES[_k] = _name
+for _i, _k in enumerate(k.strip() for k in os.environ.get("GEMINI_API_KEYS", "").split(",")):
+    if _k and _k not in KEY_NAMES:
+        KEY_NAMES[_k] = f"GEMINI_API_KEYS[{_i + 1}]"
+GEMINI_KEYS = list(KEY_NAMES)
+GEMINI_KEY = GEMINI_KEYS[0] if GEMINI_KEYS else ""
 GEMINI_URL = os.environ.get("NT_GEMINI_URL", "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions")
 GEMINI_MODELS = list(dict.fromkeys(m for m in [
     os.environ.get("GEMINI_MODEL", "").strip(),
@@ -152,10 +163,16 @@ def _model_missing(e):
 
 
 _missing_models = set()
+_bad_keys = set()
 
 
-def call_gemini(messages, want_json):
-    headers = {"Authorization": f"Bearer {GEMINI_KEY}"}
+def _key_problem(e):
+    t = str(e).lower()
+    return e.status in (401, 403) or (e.status == 400 and ("api key" in t or "api_key" in t))
+
+
+def _call_gemini_key(key, messages, want_json, more_keys):
+    headers = {"Authorization": f"Bearer {key}"}
     last = None
     for model in [m for m in GEMINI_MODELS if m not in _missing_models]:
         payload = {"model": model, "messages": messages, "temperature": 0.7, "reasoning_effort": "low"}
@@ -170,6 +187,8 @@ def call_gemini(messages, want_json):
                 return out, model
             except ApiError as e:
                 last = e
+                if _key_problem(e):
+                    raise
                 if _model_missing(e):
                     log(f"   ↪ النموذج {model} غير متاح، أجرّب التالي")
                     _missing_models.add(model)
@@ -180,13 +199,32 @@ def call_gemini(messages, want_json):
                     log(f"   ↪ إعادة بدون {dropped}")
                     attempt -= 1
                     continue
+                if e.status == 429 and more_keys:
+                    raise  # حصة هذا المفتاح نفدت: ننتقل للمفتاح التالي فوراً
                 if e.status in (0, 408, 429) or e.status >= 500:
                     wait = min(e.retry_after or 15 * attempt, 90)
                     log(f"   ⚠️ Gemini: {e} — إعادة بعد {wait:.0f}ث ({attempt}/4)")
                     time.sleep(wait)
                     continue
-                raise  # 401/403: المفتاح غير صالح
-    raise last or ApiError(503, "Gemini غير متاح")
+                raise
+    raise last or ApiError(503, "لا يوجد نموذج Gemini متاح")
+
+
+def call_gemini(messages, want_json):
+    keys = [k for k in GEMINI_KEYS if k not in _bad_keys]
+    last = None
+    for i, key in enumerate(keys):
+        try:
+            return _call_gemini_key(key, messages, want_json, more_keys=i + 1 < len(keys))
+        except ApiError as e:
+            last = e
+            if _key_problem(e) or e.status == 429:
+                _bad_keys.add(key)
+                why = "نفدت حصته" if e.status == 429 else "غير صالح"
+                log(f"   ↪ المفتاح {KEY_NAMES[key]} {why} (HTTP {e.status})" + ("، أجرّب المفتاح التالي" if i + 1 < len(keys) else ""))
+                continue
+            raise
+    raise last or ApiError(503, "لا يوجد مفتاح Gemini صالح")
 
 
 _last_poll = 0.0
@@ -997,7 +1035,7 @@ def main():
         return 0
 
     cat = CATEGORIES[len(db["articles"]) % len(CATEGORIES)]
-    log(f"🚀 النشر اليومي {today} — المزوّد: {'Gemini' if GEMINI_KEY else 'Pollinations (مجاني)'}")
+    log(f"🚀 النشر اليومي {today} — المزوّد: " + (f"Gemini ({'، '.join(KEY_NAMES.values())})" if GEMINI_KEYS else "Pollinations (مجاني) — لم أجد أي مفتاح Gemini"))
     try:
         ar, en, provider = generate_pair(cat, collect_titles(db))
     except Exception as e:
