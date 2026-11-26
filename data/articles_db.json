@@ -1,0 +1,24 @@
+{
+  "version": 2,
+  "articles": [
+    {
+      "slug": "llm_self_consistency_reasoning_decoding",
+      "date": "2026-11-26",
+      "created": "2026-11-26T21:07:59+00:00",
+      "category": "LLMs & Reasoning",
+      "provider": "gemini:gemini-3.5-flash",
+      "ar": {
+        "title": "تقنية الاتساق الذاتي: كيف نرفع دقة استدلال نماذج اللغة بدون إعادة تدريبها",
+        "description": "تعرف على تقنية الاتساق الذاتي (Self-Consistency) وكيفية استخدام فك الترميز المتعدد لتحسين مخرجات الاستدلال المنطقي في نماذج اللغة.",
+        "tag": "نماذج اللغة",
+        "read_minutes": 3
+      },
+      "en": {
+        "title": "Self-Consistency: Elevating LLM Reasoning Accuracy Without Retraining",
+        "description": "Learn how the Self-Consistency technique leverages multi-path decoding to significantly boost reasoning accuracy in language models.",
+        "tag": "Language Models",
+        "read_minutes": 3
+      }
+    }
+  ]
+}
