@@ -18,6 +18,29 @@
         "description": "Learn how the Self-Consistency technique leverages multi-path decoding to significantly boost reasoning accuracy in language models.",
         "tag": "Language Models",
         "read_minutes": 3
+      },
+      "cover": "assets/covers/llm_self_consistency_reasoning_decoding.jpg",
+      "image_prompt": "A concept scene illustrating the technology topic: Self-Consistency: Elevating LLM Reasoning Accuracy Without Retraining. Learn how the Self-Consistency technique leverages multi-path decoding to significantly boost reasoning accuracy in language models. Editorial digital illustration for a tech article, cinematic lighting, rich detail, modern futuristic style, deep blue and violet palette, wide 16:9 composition, no text, no letters, no logos"
+    },
+    {
+      "slug": "building_deterministic_tool_use_ai_agents",
+      "date": "2026-11-27",
+      "created": "2026-11-27T16:54:04+00:00",
+      "category": "AI Agents",
+      "provider": "gemini:gemini-3.5-flash",
+      "cover": "assets/covers/building_deterministic_tool_use_ai_agents.jpg",
+      "image_prompt": "A modern software architecture diagram rendered in neon blue and dark gray tones, showing a central deterministic AI agent router dispatching JSON structured schemas to isolated safe execution environments and receiving verified data responses. Editorial digital illustration for a tech article, cinematic lighting, rich detail, modern futuristic style, deep blue and violet palette, wide 16:9 composition, no text, no letters, no logos",
+      "ar": {
+        "title": "تصميم الوكلاء الأذكياء محددة السلوك: الجمع بين استدعاء الأدوات والتنفيذ الآمن",
+        "description": "دليل عملي لبناء وكلاء أذكياء يعتمدون على استدعاء الأدوات الخارجية بطريقة حتمية وآمنة لتفادي الأخطاء واستجابات النماذج غير المتوقعة.",
+        "tag": "الوكلاء الأذكياء",
+        "read_minutes": 3
+      },
+      "en": {
+        "title": "Designing Deterministic AI Agents: Combining Tool Calling and Safe Execution",
+        "description": "A practical guide to building deterministic, secure AI agents using external tool calling to prevent errors and unexpected model outputs.",
+        "tag": "AI Agents",
+        "read_minutes": 4
       }
     }
   ]

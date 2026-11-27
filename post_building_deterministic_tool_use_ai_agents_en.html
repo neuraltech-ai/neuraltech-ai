@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Designing Deterministic AI Agents: Combining Tool Calling and Safe Execution | NeuralTech AI</title>
+    <meta name="description" content="A practical guide to building deterministic, secure AI agents using external tool calling to prevent errors and unexpected model outputs.">
+    <link rel="canonical" href="https://neuraltech-ai.github.io/neuraltech-ai/post_building_deterministic_tool_use_ai_agents_en.html">
+    <link rel="alternate" hreflang="ar" href="https://neuraltech-ai.github.io/neuraltech-ai/post_building_deterministic_tool_use_ai_agents_ar.html">
+    <link rel="alternate" hreflang="en" href="https://neuraltech-ai.github.io/neuraltech-ai/post_building_deterministic_tool_use_ai_agents_en.html">
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="Designing Deterministic AI Agents: Combining Tool Calling and Safe Execution">
+    <meta property="og:description" content="A practical guide to building deterministic, secure AI agents using external tool calling to prevent errors and unexpected model outputs.">
+    <meta property="og:url" content="https://neuraltech-ai.github.io/neuraltech-ai/post_building_deterministic_tool_use_ai_agents_en.html">
+    <meta property="article:published_time" content="2026-11-27">
+    <style>
+        :root {
+            --bg-main: #0b1120;
+            --bg-card: #151f32;
+            --bg-elevated: #1e293b;
+            --card-border: #26354d;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --heading-color: #60a5fa;
+            --accent: #3b82f6;
+            --badge-bg: rgba(16, 185, 129, 0.12);
+            --badge-text: #10b981;
+            --tag-bg: rgba(59, 130, 246, 0.14);
+            --tag-text: #60a5fa;
+            --code-bg: #070b14;
+        }
+        body.light-mode {
+            --bg-main: #f1f5f9;
+            --bg-card: #ffffff;
+            --bg-elevated: #f8fafc;
+            --card-border: #e2e8f0;
+            --text-main: #0f172a;
+            --text-muted: #475569;
+            --heading-color: #1d4ed8;
+            --accent: #2563eb;
+            --badge-bg: rgba(16, 185, 129, 0.12);
+            --badge-text: #059669;
+            --tag-bg: rgba(37, 99, 235, 0.1);
+            --tag-text: #2563eb;
+            --code-bg: #0f172a;
+        }
+        * { box-sizing: border-box; }
+        body {
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 0 0 95px 0;
+            line-height: 1.75;
+            transition: background-color 0.25s ease, color 0.25s ease;
+        }
+        header {
+            background: var(--bg-card);
+            padding: 14px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--card-border);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+        }
+        .brand-title {
+            font-size: 19px;
+            font-weight: 800;
+            color: var(--heading-color);
+            text-decoration: none;
+            display: flex;
+            flex-direction: column;
+            line-height: 1.25;
+        }
+        .header-actions { display: flex; align-items: center; gap: 10px; }
+        .btn-store {
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            color: #ffffff !important;
+            padding: 8px 16px;
+            border-radius: 24px;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 13px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            box-shadow: 0 4px 14px rgba(59, 130, 246, 0.35);
+            white-space: nowrap;
+        }
+        .btn-nav {
+            background: var(--bg-elevated);
+            color: var(--text-main);
+            border: 1px solid var(--card-border);
+            padding: 7px 13px;
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 13px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+        }
+        .theme-btn {
+            background: var(--bg-elevated);
+            border: 1px solid var(--card-border);
+            color: #fbbf24;
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 17px;
+        }
+        .telemetry-bar {
+            max-width: 960px;
+            margin: 14px auto 0 auto;
+            padding: 0 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .telemetry-pill {
+            background: var(--bg-card);
+            border: 1px solid var(--card-border);
+            padding: 6px 14px;
+            border-radius: 30px;
+            font-size: 12.5px;
+            color: var(--text-muted);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .live-dot {
+            width: 8px;
+            height: 8px;
+            background: #10b981;
+            border-radius: 50%;
+            box-shadow: 0 0 8px #10b981;
+            display: inline-block;
+        }
+        .lang-tabs {
+            display: inline-flex;
+            background: var(--bg-card);
+            border: 1px solid var(--card-border);
+            border-radius: 30px;
+            padding: 3px;
+            gap: 4px;
+        }
+        .lang-tab {
+            border: none;
+            background: transparent;
+            color: var(--text-muted);
+            padding: 5px 14px;
+            border-radius: 20px;
+            font-size: 12.5px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .lang-tab.active { background: var(--accent); color: #ffffff; }
+        .search-bar-wrap {
+            max-width: 960px;
+            margin: 14px auto 4px auto;
+            padding: 0 16px;
+        }
+        .search-input {
+            width: 100%;
+            background: var(--bg-card);
+            border: 1px solid var(--card-border);
+            color: var(--text-main);
+            padding: 11px 16px;
+            border-radius: 14px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .search-input:focus { border-color: var(--accent); }
+        .container { max-width: 960px; margin: 18px auto; padding: 0 16px; }
+        .grid-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
+            gap: 22px;
+        }
+        .article-card {
+            background: var(--bg-card);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 6px 22px rgba(0, 0, 0, 0.15);
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .article-card:hover { transform: translateY(-3px); box-shadow: 0 12px 28px rgba(59, 130, 246, 0.18); }
+        .card-thumb { width: 100%; height: 205px; object-fit: cover; display: block; border-bottom: 1px solid var(--card-border); background: #1e293b; }
+        .card-body { padding: 20px; display: flex; flex-direction: column; flex: 1; }
+        .card-meta-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; gap: 8px; }
+        .tag-pill { background: var(--tag-bg); color: var(--tag-text); padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 700; }
+        .audit-badge { background: var(--badge-bg); color: var(--badge-text); padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 700; }
+        .card-title { font-size: 19px; font-weight: 800; color: var(--heading-color); margin: 0 0 10px 0; line-height: 1.45; }
+        .card-desc { color: var(--text-muted); font-size: 14.5px; line-height: 1.7; margin: 0 0 18px 0; flex: 1; }
+        .card-footer { display: flex; justify-content: space-between; align-items: center; padding-top: 14px; border-top: 1px solid var(--card-border); font-size: 13px; color: var(--text-muted); }
+        .read-link { color: var(--heading-color); font-weight: 800; text-decoration: none; display: inline-flex; align-items: center; gap: 5px; }
+        .post-container { max-width: 820px; margin: 22px auto; padding: 0 16px; }
+        .post-card { background: var(--bg-card); border: 1px solid var(--card-border); border-radius: 18px; padding: 24px; box-shadow: 0 8px 28px rgba(0, 0, 0, 0.2); }
+        .post-hero { width: 100%; height: 310px; object-fit: cover; border-radius: 14px; margin-bottom: 20px; border: 1px solid var(--card-border); background: #1e293b; }
+        .post-h1 { font-size: 25px; font-weight: 800; color: var(--heading-color); line-height: 1.45; margin: 12px 0; }
+        .takeaways-box { background: rgba(59, 130, 246, 0.08); border-right: 4px solid var(--accent); border-radius: 12px; padding: 18px 20px; margin: 22px 0; }
+        html[dir="ltr"] .takeaways-box { border-right: none; border-left: 4px solid var(--accent); }
+        .takeaways-box h3 { margin: 0 0 10px 0; color: var(--heading-color); font-size: 17px; }
+        .takeaways-box ul { margin: 0; padding-inline-start: 20px; color: var(--text-main); }
+        .takeaways-box li { margin-bottom: 8px; line-height: 1.7; }
+        .post-content h2 { color: var(--heading-color); font-size: 20px; margin-top: 28px; margin-bottom: 10px; }
+        .post-content p { color: var(--text-main); font-size: 16px; line-height: 1.9; margin-bottom: 16px; }
+        .code-wrapper { position: relative; margin: 20px 0; }
+        .copy-btn { position: absolute; top: 10px; right: 10px; background: #1e293b; color: #cbd5e1; border: 1px solid #475569; border-radius: 6px; padding: 4px 10px; font-size: 12px; cursor: pointer; }
+        pre { background: var(--code-bg); color: #38bdf8; padding: 18px; border-radius: 12px; border: 1px solid #334155; overflow-x: auto; direction: ltr; text-align: left; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 13.5px; line-height: 1.6; }
+        .discussion-box { margin-top: 34px; padding-top: 24px; border-top: 1px solid var(--card-border); }
+        .discussion-input { width: 100%; background: var(--bg-elevated); border: 1px solid var(--card-border); color: var(--text-main); padding: 12px 14px; border-radius: 10px; margin-bottom: 12px; font-size: 14px; outline: none; }
+        .btn-submit { background: linear-gradient(135deg, #3b82f6, #2563eb); color: #fff; border: none; padding: 11px 22px; border-radius: 10px; font-weight: 700; font-size: 14px; cursor: pointer; }
+        #nt-ai-wrapper { position: fixed; bottom: 18px; left: 18px; z-index: 99999; }
+        #nt-ai-trigger { background: linear-gradient(135deg, #0f172a, #1e293b); color: #f8fafc; border: 1.5px solid #3b82f6; border-radius: 50px; padding: 10px 18px; font-weight: 700; font-size: 13.5px; cursor: pointer; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5); display: inline-flex; align-items: center; gap: 8px; }
+        #nt-ai-window { display: none; position: fixed; bottom: 72px; left: 16px; width: 355px; max-width: calc(100vw - 32px); height: 470px; background: #0f172a; color: #f8fafc; border-radius: 16px; border: 1px solid #334155; box-shadow: 0 16px 40px rgba(0, 0, 0, 0.7); flex-direction: column; overflow: hidden; z-index: 100000; }
+        .chat-chips { display: flex; gap: 6px; padding: 8px 10px; background: #151f32; overflow-x: auto; border-top: 1px solid #26354d; white-space: nowrap; }
+        .chat-chip { background: rgba(59, 130, 246, 0.15); color: #93c5fd; border: 1px solid rgba(59, 130, 246, 0.35); border-radius: 20px; padding: 4px 10px; font-size: 11.5px; cursor: pointer; font-weight: 600; transition: all 0.2s; }
+        .chat-chip:hover { background: #2563eb; color: #fff; }
+        footer { text-align: center; padding: 28px 16px 12px 16px; color: var(--text-muted); font-size: 13.5px; border-top: 1px solid var(--card-border); margin-top: 40px; }
+        footer a { color: var(--heading-color); text-decoration: none; }
+    
+        .post-meta { color: var(--text-muted); font-size: 14px; margin: 4px 0 6px; }
+        .post-content code { background: var(--bg-elevated); padding: 1px 6px; border-radius: 5px; direction: ltr; unicode-bidi: isolate; font-size: .9em; }
+        .post-content strong { color: var(--heading-color); }
+        .ai-note { margin-top: 28px; padding: 12px 16px; border-radius: 12px; background: var(--bg-elevated); border: 1px dashed var(--card-border); color: var(--text-muted); font-size: 13.5px; line-height: 1.8; }
+    </style>
+</head>
+<body>
+
+<header>
+    <a href="index.html" class="brand-title">
+        <span>⚡ نيورال تك |</span>
+        <span>NeuralTech AI</span>
+    </a>
+    <div class="header-actions">
+        <a href="post_building_deterministic_tool_use_ai_agents_ar.html" class="btn-nav">🌐 العربية</a>
+        <a href="index.html" class="btn-nav">🏠 Home</a>
+        <button id="theme-toggle-btn" class="theme-btn" onclick="toggleThemeMode()" title="Toggle theme">☀️</button>
+    </div>
+</header>
+
+<div class="post-container">
+    <article class="post-card">
+        <img src="assets/covers/building_deterministic_tool_use_ai_agents.jpg" alt="Designing Deterministic AI Agents: Combining Tool Calling and Safe Execution" class="post-hero" width="1280" height="720">
+        <div class="card-meta-top">
+            <span class="tag-pill">AI Agents</span>
+            <span class="audit-badge">✍️ Written with AI assistance</span>
+        </div>
+        <h1 class="post-h1">Designing Deterministic AI Agents: Combining Tool Calling and Safe Execution</h1>
+        <div class="post-meta">📅 <time datetime="2026-11-27">2026-11-27</time> • ⏱️ 4 min read</div>
+        <div class="telemetry-pill" id="nt-stats" style="display:none"></div>
+        <div class="takeaways-box">
+            <h3>💡 Key takeaways</h3>
+            <ul>
+            <li>The core difference between unconstrained generation and deterministic agent execution via tool use.</li>
+            <li>Designing standard data schemas (JSON Schema) to guarantee valid inputs and outputs.</li>
+            <li>Self-healing error handling techniques that feed runtime exceptions back into the agent.</li>
+            <li>A practical Python implementation of a deterministic execution loop using only the standard library.</li>
+            </ul>
+        </div>
+        <div class="post-content">
+            <h2>Introduction to Deterministic Thinking in AI Agent Design</h2>
+            <p>Large Language Models (LLMs) fundamentally rely on statistical next-token prediction, leaving their raw outputs susceptible to variance and hallucinations. When building AI agents for software and operational tasks, unconstrained generation is insufficient for reliable outcomes. This creates a clear need to constrain agent behavior through deterministic execution techniques that force the model to adhere to predefined rules.</p>
+            <p>Building a deterministic agent requires converting model responses from freeform text into structured actions. Instead of allowing the agent to guess a final answer directly, it is provided with a registry of available tools. The agent must select the appropriate tool and supply parameters matching a standard format, decoupling the model's generative logic from the actual execution environment.</p>
+            <h2>Tool Calling Architecture and Schema Mapping</h2>
+            <p>Tool calling (or function calling) relies on explicit definitions for every function accessible to the agent. A standard tool definition includes the function name, an operational description, and a JSON Schema for its input parameters. This detailed metadata allows the language model to understand precisely when and how to invoke tools based on conversation context.</p>
+            <p>The workflow is orchestrated by an intermediate execution runtime. This engine receives structured outputs from the model, validates them against the defined schema, and executes the underlying code safely. Once executed, the runtime feeds the actual result back to the model, allowing it to evaluate the next step based on real execution data rather than guesswork.</p>
+            <h2>Error Handling and Self-Correction</h2>
+            <p>Agent execution inherently encounters errors, whether from invalid arguments generated by the model or runtime exceptions within external tools. A robust AI agent is characterized by its ability to recover from these errors through a closed-loop feedback mechanism.</p>
+            <p>When an error occurs during tool execution, the intermediate runtime catches the exception and converts it into a structured error message within the agent's context history. The agent evaluates this message in its next iteration, enabling it to adjust input arguments or repair its reasoning chain without crashing the process or causing unhandled terminations.</p>
+            <h2>Practical Implementation: A Deterministic Execution Loop in Plain Python</h2>
+            <p>To gain a deep understanding of this lifecycle, we can simulate an AI agent's operation using a lightweight control loop that separates reasoning from execution. This loop parses agent requests, inspects tool call specifications, validates parameters, and executes functions safely within a controlled runtime.</p>
+            <p>Because this architecture avoids external dependencies, the underlying pattern can easily adapt to any language model or SDK. Keeping the orchestration core within your developer-controlled system ensures high reliability, predictability, and safety in production environments.</p>
+        </div>
+        <div class="post-content">
+            <h2>🐍 Hands-on Python example</h2>
+            <p>This example demonstrates how to simulate an AI agent that generates structured JSON decisions. An intermediate runtime engine parses the decision, invokes the specified tool safely, and handles runtime exceptions gracefully.</p>
+        </div>
+        <div class="code-wrapper">
+            <button class="copy-btn" onclick="copyArticleCode(this)">Copy</button>
+            <pre><code>import json
+import math
+
+# Define system tools (Functions Registry)
+def calculate_area(radius: float) -&gt; float:
+    &quot;&quot;&quot;Calculate the area of a circle given its radius.&quot;&quot;&quot;
+    if radius &lt; 0:
+        raise ValueError(&quot;Radius cannot be negative.&quot;)
+    return math.pi * (radius ** 2)
+
+TOOLS = {
+    &quot;calculate_area&quot;: calculate_area
+}
+
+# Simulate the agent&#x27;s decision core
+def mock_llm_decision(user_input: str) -&gt; str:
+    &quot;&quot;&quot;Simulate structured model output (JSON Tool Call).&quot;&quot;&quot;
+    # In a real application, an LLM API call occurs here
+    if &quot;area of a circle&quot; in user_input.lower():
+        return json.dumps({
+            &quot;tool&quot;: &quot;calculate_area&quot;,
+            &quot;arguments&quot;: {&quot;radius&quot;: 5.0}
+        })
+    return json.dumps({&quot;error&quot;: &quot;No suitable tool identified.&quot;})
+
+def run_agent_step(user_query: str):
+    print(f&quot;User Query: {user_query}&quot;)
+    
+    # 1. Obtain the agent&#x27;s structured decision
+    raw_response = mock_llm_decision(user_query)
+    decision = json.loads(raw_response)
+    
+    # 2. Validate the decision and execute the tool deterministically
+    tool_name = decision.get(&quot;tool&quot;)
+    if tool_name in TOOLS:
+        try:
+            args = decision.get(&quot;arguments&quot;, {})
+            result = TOOLS[tool_name](**args)
+            print(f&quot;[Execution Success] Tool: {tool_name} | Result: {result:.2f}&quot;)
+        except Exception as e:
+            print(f&quot;[Execution Error]: {e}&quot;)
+    else:
+        print(f&quot;[Error]: {decision.get(&#x27;error&#x27;)}&quot;)
+
+# Example execution run
+if __name__ == &quot;__main__&quot;:
+    run_agent_step(&quot;Calculate the area of a circle with a radius of 5 cm&quot;)</code></pre>
+        </div>
+        <div class="ai-note">This article was generated with AI as part of NeuralTech's daily publishing and may contain mistakes. Test the code before using it in your projects — and ask the ✨ assistant about any part.</div>
+    </article>
+</div>
+
+<footer>
+    © 2026 نيورال تك | NeuralTech AI — <a href="https://payhip.com/Youstor" target="_blank" rel="noopener">Digital Store</a>
+</footer>
+
+<script>
+function toggleThemeMode(){document.body.classList.toggle('light-mode');var l=document.body.classList.contains('light-mode');try{localStorage.setItem('nt_theme',l?'light':'dark');}catch(e){}var b=document.getElementById('theme-toggle-btn');if(b)b.textContent=l?'🌙':'☀️';}
+(function(){try{if(localStorage.getItem('nt_theme')==='light'){document.body.classList.add('light-mode');var b=document.getElementById('theme-toggle-btn');if(b)b.textContent='🌙';}}catch(e){}})();
+function copyArticleCode(btn){var c=btn.parentElement.querySelector('code');if(!c||!navigator.clipboard)return;navigator.clipboard.writeText(c.innerText).then(function(){var o=btn.textContent;btn.textContent='Copied ✓';setTimeout(function(){btn.textContent=o;},1500);});}
+</script>
+<script src="nt-chat.js" defer></script>
+<script src="nt-stats.js" defer></script>
+</body>
+</html>
