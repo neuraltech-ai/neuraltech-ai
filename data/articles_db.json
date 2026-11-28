@@ -42,6 +42,27 @@
         "tag": "AI Agents",
         "read_minutes": 4
       }
+    },
+    {
+      "slug": "ai_code_review_workflows",
+      "date": "2026-11-28",
+      "created": "2026-11-28T15:55:16+00:00",
+      "category": "AI Software Engineering",
+      "provider": "pollinations:openai",
+      "cover": "assets/covers/ai_code_review_workflows.jpg",
+      "image_prompt": "A software developer reviewing a pull request on a monitor while an AI assistant highlights a small code diff beside test results, in a realistic modern workspace, with no readable text. Editorial digital illustration for a tech article, cinematic lighting, rich detail, modern futuristic style, deep blue and violet palette, wide 16:9 composition, no text, no letters, no logos",
+      "ar": {
+        "title": "مراجعة الشيفرة بمساعدة الذكاء الاصطناعي: سير عمل موثوق لاكتشاف العيوب",
+        "description": "دليل عملي لدمج النماذج اللغوية في مراجعة الشيفرة مع التحقق من النتائج وحماية الخصوصية وتقليل التنبيهات الكاذبة.",
+        "tag": "مراجعة الشيفرة",
+        "read_minutes": 5
+      },
+      "en": {
+        "title": "AI-Assisted Code Review: A Reliable Workflow for Finding Defects",
+        "description": "A practical guide to integrating language models into code review, validating their findings, protecting privacy, and reducing false positives.",
+        "tag": "Code Review",
+        "read_minutes": 6
+      }
     }
   ]
 }
